@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  AGENT
+  REQUESTER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_USER
+  RESOLVED
+  CLOSED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AssetType {
+  NOTEBOOK
+  DESKTOP
+  MONITOR
+  PRINTER
+  PHONE
+  NETWORK
+  SERVER
+  OTHER
+}
+
+enum AssetStatus {
+  IN_STOCK
+  IN_USE
+  MAINTENANCE
+  RETIRED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(REQUESTER)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  refreshTokens   RefreshToken[]
+  requestedTickets Ticket[]        @relation("TicketRequester")
+  assignedTickets  Ticket[]        @relation("TicketAssignee")
+  assets           Asset[]
+  comments         TicketComment[]
+  history          TicketHistory[]
+  attachments      Attachment[]
+  auditLogs        AuditLog[]
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Category {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  active      Boolean @default(true)
+
+  tickets Ticket[]
+}
+
+model SlaPolicy {
+  id                   String   @id @default(uuid())
+  priority             Priority @unique
+  firstResponseMinutes Int
+  resolutionMinutes    Int
+  updatedAt            DateTime @updatedAt
+}
+
+model Ticket {
+  id               String       @id @default(uuid())
+  number           Int          @unique @default(autoincrement())
+  title            String       @db.VarChar(150)
+  description      String       @db.VarChar(5000)
+  status           TicketStatus @default(OPEN)
+  priority         Priority     @default(MEDIUM)
+  categoryId       String
+  requesterId      String
+  assigneeId       String?
+  assetId          String?
+  responseDueAt    DateTime
+  resolutionDueAt  DateTime
+  slaPausedAt      DateTime?
+  firstRespondedAt DateTime?
+  resolvedAt       DateTime?
+  closedAt         DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  category  Category        @relation(fields: [categoryId], references: [id])
+  requester User            @relation("TicketRequester", fields: [requesterId], references: [id])
+  assignee  User?           @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  asset     Asset?          @relation(fields: [assetId], references: [id])
+  comments  TicketComment[]
+  history   TicketHistory[]
+  attachments Attachment[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([requesterId])
+  @@index([assigneeId])
+  @@index([createdAt])
+}
+
+model TicketComment {
+  id        String   @id @default(uuid())
+  ticketId  String
+  authorId  String
+  body      String   @db.VarChar(5000)
+  internal  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId])
+}
+
+model TicketHistory {
+  id        String   @id @default(uuid())
+  ticketId  String
+  actorId   String
+  action    String
+  fromValue String?
+  toValue   String?
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actor  User   @relation(fields: [actorId], references: [id])
+
+  @@index([ticketId])
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  ticketId   String
+  uploaderId String
+  filename   String
+  mimeType   String
+  size       Int
+  storageKey String   @unique
+  createdAt  DateTime @default(now())
+
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploader User   @relation(fields: [uploaderId], references: [id])
+
+  @@index([ticketId])
+}
+
+model Asset {
+  id           String      @id @default(uuid())
+  tag          String      @unique
+  name         String
+  type         AssetType
+  status       AssetStatus @default(IN_STOCK)
+  serialNumber String?
+  purchaseDate DateTime?   @db.Date
+  notes        String?
+  assignedToId String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  assignedTo User?    @relation(fields: [assignedToId], references: [id])
+  tickets    Ticket[]
+
+  @@index([status])
+  @@index([type])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+}

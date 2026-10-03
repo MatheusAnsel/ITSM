@@ -2,7 +2,7 @@
 
 Sistema web para registrar, acompanhar e resolver chamados de suporte de TI, controlar o parque de ativos (equipamentos) e medir o atendimento por SLA, com dashboard gerencial e trilha de auditoria.
 
-> **Status: em definição.** Este repositório contém, por enquanto, apenas a especificação do projeto (este README). Nenhum código foi implementado. Tudo o que está descrito abaixo é o **planejado**, e cada seção será validada e ajustada durante a implementação. A [seção 17](#17-roadmap-de-implementação) mostra a ordem prevista de construção.
+> **Status: Fase 1 (fundação) em andamento.** Já existem no repositório: monorepo com npm workspaces, schema Prisma completo, API NestJS com configuração validada na inicialização, health check, rate limiting, Helmet, CORS restrito, `requestId` e resposta de erro padronizada, Docker Compose com PostgreSQL e CI no GitHub Actions. **Ainda não existem:** migration inicial versionada, seed, autenticação e todos os módulos de negócio, frontend e Dockerfiles. O restante deste documento descreve o **planejado**, e cada seção será validada e ajustada durante a implementação. A [seção 17](#17-roadmap-de-implementação) mostra a ordem prevista de construção.
 
 ## Sumário
 
@@ -725,7 +725,7 @@ Um arquivo `.env.example` com esses nomes (sem valores reais) será mantido no r
 | Fase | Entrega | Critério de pronto |
 |---|---|---|
 | 0 | Definição (este README) | Escopo, requisitos, regras, modelo e API revisados |
-| 1 | Fundação | Monorepo, Docker Compose, schema Prisma com migration inicial, configuração validada, health check, CI verde |
+| 1 | Fundação (em andamento) | Monorepo, Docker Compose, schema Prisma com migration inicial, configuração validada, health check, CI verde |
 | 2 | Autenticação e usuários | Cadastro, login, refresh rotativo, logout, perfis, gestão de usuários, testes |
 | 3 | Chamados | Abertura, listagem com filtros, atribuição, status, comentários, histórico, anexos, testes das regras |
 | 4 | SLA e ativos | Políticas, cálculo e pausa, violação; cadastro e vínculo de ativos |
