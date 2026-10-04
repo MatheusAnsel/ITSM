@@ -1,0 +1,93 @@
+@import 'tailwindcss';
+
+/* Tokens extraídos da referência visual: superfície quase preta, bordas de
+   1px em branco translúcido, texto frio e acentos saturados. */
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --color-canvas: #08080b;
+  --color-window: #0f0f13;
+  --color-panel: #15151a;
+  --color-panel-2: #1b1b21;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-line-strong: rgba(255, 255, 255, 0.14);
+  --color-ink: #ececef;
+  --color-ink-2: #a3a3ad;
+  --color-ink-3: #6e6e79;
+
+  --color-brand: #2f6df6;
+  --color-ask: #ff4d6d;
+  --color-star: #f5b82e;
+
+  --color-ok: #3ecf8e;
+  --color-warn: #f5b82e;
+  --color-bad: #ff5d6c;
+  --color-info: #5b9dff;
+  --color-violet: #a78bfa;
+
+  --radius-window: 22px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Fundo: blocos desfocados em roxo, magenta e azul, como no pano de fundo
+   da janela da referência. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 50% at 15% 90%, rgba(168, 56, 214, 0.35), transparent 70%),
+    radial-gradient(50% 45% at 90% 20%, rgba(59, 90, 246, 0.3), transparent 70%),
+    radial-gradient(40% 40% at 70% 95%, rgba(236, 72, 153, 0.22), transparent 70%),
+    var(--color-canvas);
+}
+
+.backdrop::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 2px, transparent 2px);
+  background-size: 96px 96px;
+  mask-image: radial-gradient(70% 70% at 50% 50%, black, transparent);
+  filter: blur(2px);
+}
+
+.window {
+  background: color-mix(in srgb, var(--color-window) 94%, transparent);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-window);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 30px 80px -20px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+}
+
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 8px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}

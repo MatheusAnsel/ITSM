@@ -2,7 +2,7 @@
 
 Sistema web para registrar, acompanhar e resolver chamados de suporte de TI, controlar o parque de ativos (equipamentos) e medir o atendimento por SLA, com dashboard gerencial e trilha de auditoria.
 
-> **Status: Fase 1 (fundação) em andamento.** Já existem no repositório: monorepo com npm workspaces, schema Prisma completo, API NestJS com configuração validada na inicialização, health check, rate limiting, Helmet, CORS restrito, `requestId` e resposta de erro padronizada, Docker Compose com PostgreSQL e CI no GitHub Actions. A **autenticação** (cadastro, login, refresh token rotativo com detecção de reuso, logout, troca de senha, guards globais de JWT e de perfil) está implementada e coberta por testes unitários. A **gestão de usuários** pelo administrador (criar, listar com busca e paginação, editar, ativar/desativar, lista de atendentes) também está implementada, com proteção contra o administrador alterar a si mesmo ou remover o último administrador ativo. As **regras puras de chamados e SLA** (fluxo de status, permissões de transição, vencimentos, pausa, primeira resposta, violação e fechamento automático) estão implementadas e testadas, mas ainda não expostas por endpoints. **Ainda não existem:** migration inicial versionada, seed, endpoints de chamados, categorias, SLA, ativos, dashboard e auditoria, frontend e Dockerfiles. O restante deste documento descreve o **planejado**, e cada seção será validada e ajustada durante a implementação. A [seção 17](#17-roadmap-de-implementação) mostra a ordem prevista de construção.
+> **Status: Fase 1 (fundação) em andamento.** Já existem no repositório: monorepo com npm workspaces, schema Prisma completo, API NestJS com configuração validada na inicialização, health check, rate limiting, Helmet, CORS restrito, `requestId` e resposta de erro padronizada, Docker Compose com PostgreSQL e CI no GitHub Actions. A **autenticação** (cadastro, login, refresh token rotativo com detecção de reuso, logout, troca de senha, guards globais de JWT e de perfil) está implementada e coberta por testes unitários. A **gestão de usuários** pelo administrador (criar, listar com busca e paginação, editar, ativar/desativar, lista de atendentes) também está implementada, com proteção contra o administrador alterar a si mesmo ou remover o último administrador ativo. As **regras puras de chamados e SLA** (fluxo de status, permissões de transição, vencimentos, pausa, primeira resposta, violação e fechamento automático) estão implementadas e testadas, mas ainda não expostas por endpoints. O **frontend** (`apps/web`, Next.js e Tailwind) já tem o sistema visual, a estrutura da janela (barra superior, menu lateral), login ligado à API real e as telas de painel, chamados e ativos. Essas três telas usam **dados de demonstração** até os endpoints correspondentes existirem. **Ainda não existem:** migration inicial versionada, seed, endpoints de chamados, categorias, SLA, ativos, dashboard e auditoria, telas de detalhe de chamado, SLA, categorias, usuários e auditoria, e Dockerfiles. O restante deste documento descreve o **planejado**, e cada seção será validada e ajustada durante a implementação. A [seção 17](#17-roadmap-de-implementação) mostra a ordem prevista de construção.
 
 ## Sumário
 
@@ -749,10 +749,10 @@ npm install
 npm run db:migrate            # aplica as migrations
 npm run db:seed               # dados de exemplo (apenas desenvolvimento)
 npm run dev:api               # API em http://localhost:3001
-npm run dev:web               # Web em http://localhost:3000
+npm run dev:web               # Web em http://localhost:3000 (já funciona, com dados de demonstração)
 ```
 
-Estes comandos ainda não funcionam: descrevem o fluxo alvo.
+Parte destes comandos ainda não funciona: `db:migrate` e `db:seed` dependem da migration inicial e do seed, que ainda não existem. `dev:web` já funciona, com dados de demonstração.
 
 ## 19. Decisões em aberto
 
