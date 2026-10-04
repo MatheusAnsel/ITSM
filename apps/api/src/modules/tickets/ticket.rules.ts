@@ -1,7 +1,13 @@
 import { isStaff, RoleName } from '../../common/roles';
 
-export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'WAITING_USER' | 'RESOLVED' | 'CLOSED' | 'CANCELLED';
-export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export const TICKET_STATUSES = ['OPEN', 'IN_PROGRESS', 'WAITING_USER', 'RESOLVED', 'CLOSED', 'CANCELLED'] as const;
+export const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
+export type Priority = (typeof PRIORITIES)[number];
+
+export function isTerminal(status: TicketStatus): boolean {
+  return status === 'CLOSED' || status === 'CANCELLED';
+}
 
 // RN-02
 export const STATUS_TRANSITIONS: Readonly<Record<TicketStatus, readonly TicketStatus[]>> = {
