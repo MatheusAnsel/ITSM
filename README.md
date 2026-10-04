@@ -2,7 +2,7 @@
 
 Sistema web para registrar, acompanhar e resolver chamados de suporte de TI, controlar o parque de ativos (equipamentos) e medir o atendimento por SLA, com dashboard gerencial e trilha de auditoria.
 
-> **Status: Fase 1 (fundação) em andamento.** Já existem no repositório: monorepo com npm workspaces, schema Prisma completo, API NestJS com configuração validada na inicialização, health check, rate limiting, Helmet, CORS restrito, `requestId` e resposta de erro padronizada, Docker Compose com PostgreSQL e CI no GitHub Actions. **Ainda não existem:** migration inicial versionada, seed, autenticação e todos os módulos de negócio, frontend e Dockerfiles. O restante deste documento descreve o **planejado**, e cada seção será validada e ajustada durante a implementação. A [seção 17](#17-roadmap-de-implementação) mostra a ordem prevista de construção.
+> **Status: Fase 1 (fundação) em andamento.** Já existem no repositório: monorepo com npm workspaces, schema Prisma completo, API NestJS com configuração validada na inicialização, health check, rate limiting, Helmet, CORS restrito, `requestId` e resposta de erro padronizada, Docker Compose com PostgreSQL e CI no GitHub Actions. A **autenticação** (cadastro, login, refresh token rotativo com detecção de reuso, logout, troca de senha, guards globais de JWT e de perfil) está implementada e coberta por testes unitários. **Ainda não existem:** migration inicial versionada, seed, gestão de usuários pelo administrador, módulos de chamados, SLA, ativos, dashboard e auditoria, frontend e Dockerfiles. O restante deste documento descreve o **planejado**, e cada seção será validada e ajustada durante a implementação. A [seção 17](#17-roadmap-de-implementação) mostra a ordem prevista de construção.
 
 ## Sumário
 
@@ -738,7 +738,7 @@ Ao final de cada fase, este README é atualizado para refletir o que realmente e
 
 ## 18. Como rodar (previsto)
 
-Pré-requisitos: Node.js 20 ou superior, Docker e Docker Compose.
+Pré-requisitos: Node.js 24.9 ou superior, Docker e Docker Compose.
 
 ```bash
 git clone https://github.com/MatheusAnsel/ITSM.git
