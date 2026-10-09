@@ -9,11 +9,14 @@ import {
   UpdateTicketDto,
 } from './dto/tickets.dto';
 import { TicketsService } from './tickets.service';
+import { Audit, fromParam, fromResult } from '../audit/audit.decorator';
+import { pickFields } from '../audit/audit.rules';
 
 @Controller('tickets')
 export class TicketsController {
   constructor(private readonly tickets: TicketsService) {}
 
+  @Audit({ action: 'TICKET_CREATED', entity: 'Ticket', entityId: fromResult() })
   @Post()
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateTicketDto) {
     return this.tickets.create(user, dto);
@@ -30,18 +33,36 @@ export class TicketsController {
   }
 
   @Roles('AGENT', 'MANAGER', 'ADMIN')
+  @Audit({
+    action: 'TICKET_UPDATED',
+    entity: 'Ticket',
+    entityId: fromParam(),
+    extra: (req) => pickFields(req.body, ['priority', 'categoryId', 'assetId']),
+  })
   @Patch(':id')
   update(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateTicketDto) {
     return this.tickets.update(user, id, dto);
   }
 
   @Roles('AGENT', 'MANAGER', 'ADMIN')
+  @Audit({
+    action: 'TICKET_ASSIGNED',
+    entity: 'Ticket',
+    entityId: fromParam(),
+    extra: (req) => pickFields(req.body, ['assigneeId']),
+  })
   @HttpCode(200)
   @Post(':id/assign')
   assign(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: AssignTicketDto) {
     return this.tickets.assign(user, id, dto.assigneeId);
   }
 
+  @Audit({
+    action: 'TICKET_STATUS_CHANGED',
+    entity: 'Ticket',
+    entityId: fromParam(),
+    extra: (req) => pickFields(req.body, ['status']),
+  })
   @HttpCode(200)
   @Post(':id/status')
   changeStatus(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: ChangeStatusDto) {

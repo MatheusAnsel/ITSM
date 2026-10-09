@@ -5,6 +5,13 @@ import { AuthUser, CurrentUser, Public } from '../../common/decorators/auth.deco
 import { validateEnv } from '../../config/env';
 import { AuthService, Session } from './auth.service';
 import { ChangePasswordDto, LoginDto, RegisterDto } from './dto/auth.dto';
+import { Audit, fromResult } from '../audit/audit.decorator';
+
+// E-mail informado no login, normalizado e limitado, para rastrear tentativas; a senha nunca entra.
+function loginEmail(body: unknown): Record<string, unknown> {
+  const email = (body as { email?: unknown } | undefined)?.email;
+  return typeof email === 'string' ? { email: email.trim().toLowerCase().slice(0, 254) } : {};
+}
 
 export const REFRESH_COOKIE = 'itsm_refresh';
 const COOKIE_PATH = '/api/auth';
@@ -16,6 +23,12 @@ export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
   @Public()
+  @Audit({
+    action: 'USER_REGISTERED',
+    entity: 'User',
+    actorId: fromResult('user.id'),
+    entityId: fromResult('user.id'),
+  })
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('register')
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
@@ -23,6 +36,14 @@ export class AuthController {
   }
 
   @Public()
+  @Audit({
+    action: 'LOGIN_SUCCEEDED',
+    failureAction: 'LOGIN_FAILED',
+    entity: 'User',
+    actorId: fromResult('user.id'),
+    entityId: fromResult('user.id'),
+    extra: (req) => loginEmail(req.body),
+  })
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @HttpCode(200)
   @Post('login')
@@ -39,6 +60,7 @@ export class AuthController {
     return this.respond(res, await this.auth.refresh(token));
   }
 
+  @Audit({ action: 'LOGOUT', entity: 'User', entityId: (req) => req.user?.id })
   @HttpCode(204)
   @Post('logout')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<void> {
@@ -52,6 +74,7 @@ export class AuthController {
     return this.auth.me(user.id);
   }
 
+  @Audit({ action: 'PASSWORD_CHANGED', entity: 'User', entityId: (req) => req.user?.id })
   @HttpCode(204)
   @Patch('me/password')
   async changePassword(

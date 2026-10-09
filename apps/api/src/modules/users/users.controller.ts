@@ -2,6 +2,8 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from 
 import { AuthUser, CurrentUser, Roles } from '../../common/decorators/auth.decorators';
 import { CreateUserDto, ListUsersQuery, UpdateUserDto } from './dto/users.dto';
 import { UsersService } from './users.service';
+import { Audit, fromParam, fromResult } from '../audit/audit.decorator';
+import { pickFields } from '../audit/audit.rules';
 
 @Controller('users')
 export class UsersController {
@@ -21,6 +23,12 @@ export class UsersController {
   }
 
   @Roles('ADMIN')
+  @Audit({
+    action: 'USER_CREATED',
+    entity: 'User',
+    entityId: fromResult(),
+    extra: (req) => pickFields(req.body, ['role']),
+  })
   @Post()
   create(@Body() dto: CreateUserDto) {
     return this.users.create(dto);
@@ -33,6 +41,12 @@ export class UsersController {
   }
 
   @Roles('ADMIN')
+  @Audit({
+    action: 'USER_UPDATED',
+    entity: 'User',
+    entityId: fromParam(),
+    extra: (req) => pickFields(req.body, ['role', 'active']),
+  })
   @Patch(':id')
   update(
     @CurrentUser() actor: AuthUser,

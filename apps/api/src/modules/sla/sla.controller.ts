@@ -3,6 +3,8 @@ import { Roles } from '../../common/decorators/auth.decorators';
 import type { Priority } from '../tickets/ticket.rules';
 import { UpdateSlaPolicyDto } from './dto/sla.dto';
 import { PRIORITY_ORDER, SlaService } from './sla.service';
+import { Audit, fromParam } from '../audit/audit.decorator';
+import { pickFields } from '../audit/audit.rules';
 
 @Controller('sla-policies')
 export class SlaController {
@@ -15,6 +17,12 @@ export class SlaController {
   }
 
   @Roles('ADMIN')
+  @Audit({
+    action: 'SLA_POLICY_UPDATED',
+    entity: 'SlaPolicy',
+    entityId: fromParam('priority'),
+    extra: (req) => pickFields(req.body, ['firstResponseMinutes', 'resolutionMinutes']),
+  })
   @Put(':priority')
   update(@Param('priority') priority: string, @Body() dto: UpdateSlaPolicyDto) {
     if (!PRIORITY_ORDER.includes(priority as Priority))

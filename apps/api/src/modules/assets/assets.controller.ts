@@ -2,6 +2,8 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from 
 import { Roles } from '../../common/decorators/auth.decorators';
 import { AssetsService } from './assets.service';
 import { CreateAssetDto, ListAssetsQuery, UpdateAssetDto } from './dto/assets.dto';
+import { Audit, fromParam, fromResult } from '../audit/audit.decorator';
+import { pickFields } from '../audit/audit.rules';
 
 @Controller('assets')
 export class AssetsController {
@@ -21,6 +23,7 @@ export class AssetsController {
   }
 
   @Roles('MANAGER', 'ADMIN')
+  @Audit({ action: 'ASSET_CREATED', entity: 'Asset', entityId: fromResult() })
   @Post()
   create(@Body() dto: CreateAssetDto) {
     return this.assets.create(dto);
@@ -33,6 +36,12 @@ export class AssetsController {
   }
 
   @Roles('MANAGER', 'ADMIN')
+  @Audit({
+    action: 'ASSET_UPDATED',
+    entity: 'Asset',
+    entityId: fromParam(),
+    extra: (req) => pickFields(req.body, ['status', 'assignedToId']),
+  })
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAssetDto) {
     return this.assets.update(id, dto);
