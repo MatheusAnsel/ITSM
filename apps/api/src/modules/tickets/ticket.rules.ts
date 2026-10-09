@@ -165,3 +165,8 @@ export function resolutionIndicator(t: SlaSnapshot & { createdAt: Date }, now: D
   const remaining = t.resolutionDueAt.getTime() - reference.getTime();
   return total > 0 && remaining / total <= AT_RISK_FRACTION ? 'AT_RISK' : 'OK';
 }
+
+// Chamados resolvidos até este instante já passaram do prazo da RN-07.
+export function autoCloseCutoff(now: Date): Date {
+  return new Date(now.getTime() - AUTO_CLOSE_DAYS * 24 * 60 * 60 * 1000);
+}

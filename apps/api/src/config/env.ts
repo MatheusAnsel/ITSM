@@ -26,6 +26,8 @@ export const envSchema = z.object({
   SWAGGER_ENABLED: booleanFromString('false'),
   UPLOAD_DIR: z.string().default('./uploads'),
   MAX_UPLOAD_MB: z.coerce.number().positive().default(5),
+  // Intervalo do fechamento automático (RN-07); 0 desliga.
+  AUTO_CLOSE_INTERVAL_MINUTES: z.coerce.number().int().min(0).default(15),
 });
 
 export type Env = z.infer<typeof envSchema>;
