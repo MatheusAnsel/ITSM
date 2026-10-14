@@ -71,8 +71,9 @@ describe('API HTTP (AppModule inteiro, Prisma simulado)', () => {
     await http().post(`/tickets/${UUID}/assign`).set('Authorization', `Bearer ${t}`).send({ assigneeId: UUID }).expect(403);
   });
 
-  it('atendente não acessa a gestão de usuários', async () => {
+  it('atendente não acessa a gestão de usuários nem o diretório', async () => {
     await http().get('/users').set('Authorization', `Bearer ${await token('AGENT')}`).expect(403);
+    await http().get('/users/directory').set('Authorization', `Bearer ${await token('AGENT')}`).expect(403);
   });
 
   it('valida a entrada: campos extras, tipos e UUID malformado', async () => {

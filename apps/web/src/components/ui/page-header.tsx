@@ -1,31 +1,20 @@
-import type { LucideIcon } from 'lucide-react';
-
-export interface HeaderAction {
-  label: string;
-  icon: LucideIcon;
-}
-
-// Título da página com a fileira de botões de ação quadrados à direita.
-export function PageHeader({ title, subtitle, actions = [] }: { title: string; subtitle?: string; actions?: HeaderAction[] }) {
+// Título da página com área de ações (botões reais) à direita.
+export function PageHeader({
+  title,
+  subtitle,
+  actions,
+}: {
+  title: string;
+  subtitle?: string;
+  actions?: React.ReactNode;
+}) {
   return (
-    <div className="mb-5 flex items-start justify-between gap-4">
-      <div>
+    <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0">
         <h1 className="text-[22px] font-semibold tracking-tight">{title}</h1>
         {subtitle && <p className="mt-1 text-[13px] text-ink-2">{subtitle}</p>}
       </div>
-      <div className="flex gap-1.5">
-        {actions.map(({ label, icon: Icon }) => (
-          <button
-            key={label}
-            type="button"
-            aria-label={label}
-            title={label}
-            className="grid h-8 w-8 place-items-center rounded-lg border border-line bg-panel text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
-          >
-            <Icon size={15} />
-          </button>
-        ))}
-      </div>
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }

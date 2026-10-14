@@ -19,6 +19,9 @@ class MemoryUsers extends UsersRepository {
     this.lastFilter = filter;
     return { items: this.users.slice(filter.skip, filter.skip + filter.take), total: this.users.length };
   }
+  async listActive() {
+    return this.users.filter((u) => u.active);
+  }
   async listActiveStaff() {
     return this.users.filter((u) => u.active && u.role !== 'REQUESTER');
   }
@@ -63,6 +66,13 @@ describe('UsersService', () => {
     expect(created).toMatchObject({ name: 'Bia', email: 'bia@x.com', role: 'AGENT' });
     await expect(service.create({ name: 'Bia', email: 'bia@x.com', password: 'senha-segura-123', role: 'AGENT' })).rejects.toBeInstanceOf(ConflictException);
     await expect(service.create({ name: 'Cid', email: 'c@x.com', password: 'curta', role: 'AGENT' })).rejects.toBeInstanceOf(UnprocessableEntityException);
+  });
+
+  it('o diretório lista só usuários ativos', async () => {
+    repo.seed('REQUESTER');
+    repo.seed('AGENT', false);
+    const dir = await service.directory();
+    expect(dir).toHaveLength(2); // admin + solicitante; o inativo fica de fora
   });
 
   it('pagina a listagem', async () => {

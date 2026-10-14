@@ -39,6 +39,11 @@ export class UsersService {
     return this.repo.listActiveStaff();
   }
 
+  // Diretório para escolher responsável por um ativo; sem e-mail, só o necessário para o seletor.
+  directory() {
+    return this.repo.listActive();
+  }
+
   async get(id: string): Promise<UserView> {
     const user = await this.repo.findById(id);
     if (!user) throw new NotFoundException('Usuário não encontrado');
