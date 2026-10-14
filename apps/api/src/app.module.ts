@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AssetsModule } from './modules/assets/assets.module';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -17,7 +18,11 @@ import { PrismaModule } from './prisma/prisma.module';
 // Ordem dos guards globais: limite de requisições, autenticação, perfil.
 @Module({
   imports: [
-    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 100 }]),
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: 'default', ttl: 60_000, limit: 100 }],
+      // Desligado apenas por RATE_LIMIT_ENABLED=false (testes); a API recusa essa opção em produção.
+      skipIf: () => process.env.RATE_LIMIT_ENABLED === 'false',
+    }),
     PrismaModule,
     AuditModule,
     AuthModule,
@@ -27,6 +32,7 @@ import { PrismaModule } from './prisma/prisma.module';
     SlaModule,
     DashboardModule,
     TicketsModule,
+    AttachmentsModule,
     HealthModule,
   ],
   providers: [

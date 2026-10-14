@@ -16,6 +16,12 @@ export class UsersController {
     return this.users.agents();
   }
 
+  @Roles('MANAGER', 'ADMIN')
+  @Get('directory')
+  directory() {
+    return this.users.directory();
+  }
+
   @Roles('ADMIN')
   @Get()
   list(@Query() query: ListUsersQuery) {

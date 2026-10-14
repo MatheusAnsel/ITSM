@@ -1,15 +1,16 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import { AuthCard } from '@/components/auth/auth-card';
 import { LoginForm } from './login-form';
 
 export const metadata: Metadata = { title: 'Entrar' };
 
 export default function LoginPage() {
   return (
-    <>
-      <div className="backdrop" aria-hidden />
-      <main className="relative z-10 grid min-h-screen place-items-center p-4">
+    <AuthCard title="Entrar no ITSM" subtitle="Gestão de chamados e ativos de TI">
+      <Suspense>
         <LoginForm />
-      </main>
-    </>
+      </Suspense>
+    </AuthCard>
   );
 }

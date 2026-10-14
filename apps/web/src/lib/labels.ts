@@ -1,4 +1,4 @@
-import type { AssetStatus, AssetType, Priority, SlaIndicator, TicketStatus } from './types';
+import type { AssetStatus, AssetType, Priority, Role, SlaIndicator, TicketStatus } from './types';
 
 export const PRIORITY_LABEL: Record<Priority, string> = {
   LOW: 'Baixa',
@@ -39,3 +39,25 @@ export const ASSET_STATUS_LABEL: Record<AssetStatus, string> = {
   MAINTENANCE: 'Manutenção',
   RETIRED: 'Aposentado',
 };
+
+export const ROLE_LABEL: Record<Role, string> = {
+  ADMIN: 'Administrador',
+  MANAGER: 'Gestor',
+  AGENT: 'Atendente',
+  REQUESTER: 'Solicitante',
+};
+
+// Rótulo do botão que leva o chamado de um status a outro.
+export function transitionLabel(from: TicketStatus, to: TicketStatus): string {
+  if (from === 'RESOLVED' && to === 'IN_PROGRESS') return 'Reabrir chamado';
+  if (from === 'WAITING_USER' && to === 'IN_PROGRESS') return 'Retomar atendimento';
+  const labels: Record<TicketStatus, string> = {
+    OPEN: 'Reabrir',
+    IN_PROGRESS: 'Iniciar atendimento',
+    WAITING_USER: 'Aguardar usuário',
+    RESOLVED: 'Marcar como resolvido',
+    CLOSED: 'Fechar chamado',
+    CANCELLED: 'Cancelar chamado',
+  };
+  return labels[to];
+}

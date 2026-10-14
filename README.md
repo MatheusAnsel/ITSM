@@ -2,22 +2,26 @@
 
 Sistema web para registrar, acompanhar e resolver chamados de suporte de TI, controlar o parque de ativos (equipamentos) e medir o atendimento por SLA, com dashboard gerencial e trilha de auditoria.
 
-> **Status: a API cobre todo o escopo planejado, exceto anexos; o frontend está em andamento.**
->
-> Implementado na API (NestJS, Prisma e PostgreSQL), com testes automatizados:
->
-> - **Fundação:** monorepo com npm workspaces, schema Prisma, migration inicial versionada, seed, configuração validada na inicialização, health check, rate limiting, Helmet, CORS restrito, `requestId`, resposta de erro padronizada, Docker Compose com PostgreSQL e CI no GitHub Actions.
-> - **Autenticação:** cadastro, login, refresh token rotativo com detecção de reuso, logout, troca de senha e guards globais de JWT e de perfil.
-> - **Usuários:** criar, listar com busca e paginação, editar e ativar/desativar, lista de atendentes, com proteção contra o administrador alterar a si mesmo ou remover o último administrador ativo.
-> - **Chamados:** abertura, listagem com filtros, busca e paginação, detalhe, edição, atribuição, mudança de status, comentários (inclusive internos) e histórico. Visibilidade, fluxo de status, pausa e recálculo de SLA, primeira resposta e reabertura automática estão aplicados e testados. O solicitante só enxerga os próprios chamados e a API responde 404 (não 403) para os de outras pessoas.
-> - **Fechamento automático (RN-07):** rotina periódica na própria API (a cada 15 minutos por padrão, `AUTO_CLOSE_INTERVAL_MINUTES`; `0` desliga) que fecha chamados resolvidos e sem resposta, registrando o histórico em nome de um usuário de sistema inativo.
-> - **Categorias, ativos de TI e SLA:** categorias (leitura para todos, criação e edição pelo administrador); ativos com patrimônio único normalizado em caixa alta, filtros, detalhe com chamados vinculados e a regra RN-09; políticas de SLA por prioridade com validação de que a resposta não vence depois da resolução.
-> - **Dashboard:** quatro endpoints para gestor e administrador (resumo, por categoria, por atendente e volume diário).
-> - **Auditoria:** interceptor global grava autor, ação, entidade, IP e os nomes dos campos alterados (nunca os valores, e nunca campos de senha ou token) nos eventos da RN-10, e `GET /audit` (somente administrador) lista o log com filtros e paginação. Falha ao gravar a auditoria é registrada no log da aplicação e não derruba a requisição.
->
-> **Frontend** (`apps/web`, Next.js e Tailwind): sistema visual, estrutura da janela (barra superior e menu lateral) e login ligado à API real. As telas de painel, chamados e ativos usam **dados de demonstração** até serem ligadas aos endpoints.
->
-> **Ainda não existem:** anexos, ligação do frontend aos endpoints de chamados, ativos e dashboard, telas de detalhe de chamado, SLA, categorias, usuários e auditoria, e Dockerfiles. Os repositórios Prisma ainda não são exercitados por testes automatizados contra um PostgreSQL real; os módulos são testados com repositórios em memória e há um teste HTTP com o Prisma simulado.
+> **Status: escopo completo.** API, frontend, testes (unitários e de ponta a ponta contra PostgreSQL real), Docker Compose e CI estão implementados. O que foi e o que não foi verificado está descrito na seção [14](#14-estratégia-de-testes-e-qualidade).
+
+## Telas
+
+| | |
+|---|---|
+| ![Painel](docs/screenshots/painel.png) | ![Fila de chamados](docs/screenshots/chamados.png) |
+| Painel gerencial: SLA, volume, categorias e carga por atendente | Fila de chamados com filtros, busca e indicador de SLA |
+| ![Detalhe do chamado](docs/screenshots/chamado.png) | ![Ativos](docs/screenshots/ativos.png) |
+| Chamado: comentários (públicos e internos), anexos, histórico e SLA | Parque de ativos com situação e responsável |
+| ![SLA](docs/screenshots/sla.png) | ![Auditoria](docs/screenshots/auditoria.png) |
+| Políticas de SLA por prioridade | Log de auditoria (somente administrador) |
+
+As capturas usam dados de demonstração gerados pelo seed (`SEED_DEMO=true`), com 48 chamados em todos os status.
+
+## O que existe
+
+- **API (NestJS 12, Prisma, PostgreSQL 16):** autenticação com access token em memória e refresh token rotativo em cookie `httpOnly`, com detecção de reuso; usuários e perfis; chamados com fluxo de status, atribuição, comentários internos, histórico, SLA com pausa e recálculo, primeira resposta e fechamento automático (RN-07); anexos validados pelo conteúdo; categorias; ativos com as regras RN-09; dashboard; auditoria sem valores sensíveis. Documentação Swagger em `/api/docs`.
+- **Frontend (Next.js 16, React 19, Tailwind 4):** todas as telas da seção 12 ligadas à API real, com estados de carregamento, vazio e erro, menus filtrados por perfil, renovação silenciosa da sessão e proteção de rotas.
+- **Infraestrutura:** Dockerfiles multi-stage (usuário não-root, healthcheck), Docker Compose com banco, API e web, e GitHub Actions com tipos, lint, testes, e2e contra PostgreSQL, build, `npm audit` e build das imagens.
 
 ## Sumário
 
@@ -38,7 +42,7 @@ Sistema web para registrar, acompanhar e resolver chamados de suporte de TI, con
 15. [Infraestrutura e CI](#15-infraestrutura-e-ci)
 16. [Variáveis de ambiente](#16-variáveis-de-ambiente)
 17. [Roadmap de implementação](#17-roadmap-de-implementação)
-18. [Como rodar (previsto)](#18-como-rodar-previsto)
+18. [Como rodar](#18-como-rodar)
 19. [Decisões em aberto](#19-decisões-em-aberto)
 20. [Licença e autor](#20-licença-e-autor)
 
@@ -412,12 +416,14 @@ ITSM/
 │   │   │       ├── users/
 │   │   │       ├── categories/
 │   │   │       ├── sla/
-│   │   │       ├── tickets/  (comentários, histórico, fechamento automático; anexos previstos)
+│   │   │       ├── tickets/  (comentários, histórico, fechamento automático; anexos)
 │   │   │       ├── assets/
 │   │   │       ├── dashboard/
 │   │   │       ├── audit/
 │   │   │       └── health/
-│   └── web/                  Next.js
+│   │   └── test/             testes e2e contra PostgreSQL real
+│   └── web/                  Next.js (App Router)
+├── docs/screenshots/
 ├── docker-compose.yml
 ├── .github/workflows/
 ├── .env.example
@@ -583,7 +589,7 @@ Sempre criados (idempotentes, sem sobrescrever o que já existe):
 - O usuário técnico `Sistema`, inativo e com senha aleatória descartada, usado como autor das ações automáticas.
 - Um administrador, com e-mail em `SEED_ADMIN_EMAIL` (padrão `admin@itsm.local`) e senha em `SEED_ADMIN_PASSWORD`, validada pelas mesmas regras de senha da API; nenhuma credencial fixa no repositório.
 
-Somente com `SEED_DEMO=true` (recusado com `NODE_ENV=production`): um gestor, um atendente e um solicitante de demonstração, com a mesma senha do administrador, e cinco ativos de exemplo.
+Somente com `SEED_DEMO=true` (recusado com `NODE_ENV=production`): oito pessoas de demonstração (gestor, atendentes e solicitantes), com a mesma senha do administrador, dez ativos e 48 chamados gerados de forma determinística, com status, histórico, comentários e SLA coerentes entre si. Os chamados só são criados se a tabela estiver vazia, então rodar o seed de novo não duplica nada.
 
 ## 11. API REST
 
@@ -677,26 +683,27 @@ Filtros de `GET /tickets`: `status`, `priority`, `categoryId`, `assigneeId`, `re
 | Categorias e SLA | ADMIN | Catálogo e políticas |
 | Auditoria | ADMIN | Tabela filtrável |
 
-Diretrizes: layout responsivo, estados de carregamento e de erro em todas as telas, confirmação antes de ações destrutivas (cancelar chamado, aposentar ativo, desativar usuário), e menus que mostram apenas o que o perfil pode acessar (a checagem real continua na API).
+Todas as telas acima estão implementadas. Diretrizes seguidas: layout responsivo, estados de carregamento e de erro em todas as telas, confirmação antes de ações destrutivas (cancelar chamado, aposentar ativo, desativar usuário), e menus que mostram apenas o que o perfil pode acessar (a checagem real continua na API).
 
 ## 13. Segurança
 
 | Tema | Decisão |
 |---|---|
 | Senhas | bcrypt com custo 12; política mínima de 10 caracteres |
-| Sessão | Access token JWT de 15 minutos mantido em memória no navegador; refresh token de 7 dias em cookie `httpOnly`, `SameSite=Lax` e `Secure` em produção |
+| Sessão | Access token JWT de 15 minutos mantido em memória no navegador; refresh token de 7 dias em cookie `httpOnly`, `SameSite=Strict`, restrito ao caminho `/api/auth` e `Secure` em produção |
 | Refresh token | Guardado apenas como hash; rotação a cada uso; reuso de token revogado derruba todas as sessões do usuário |
 | Autorização | Guard de perfil em cada rota; regras de visibilidade (solicitante só vê o que abriu) aplicadas na consulta, não só na interface |
 | Entrada | `ValidationPipe` global com `whitelist` e `forbidNonWhitelisted`; limites de tamanho em todos os campos de texto |
 | Força bruta | Rate limiting global e limite mais baixo em login, cadastro e refresh |
 | Cabeçalhos | Helmet; CORS restrito às origens configuradas |
-| Anexos | Limite de tamanho, lista de tipos permitidos, nome aleatório, validação do tipo pelo conteúdo e não só pela extensão, download via rota autenticada |
+| Anexos | Limite de tamanho e de quantidade por chamado, tipos permitidos (PNG, JPEG, PDF, TXT e LOG) validados pelos bytes do arquivo e não só pela extensão, nome em disco aleatório, download somente por rota autenticada, sempre como `attachment` e sem cache |
 | SQL | Apenas consultas parametrizadas via Prisma |
 | Segredos | Somente por variáveis de ambiente; `.env` fora do Git; segredos de exemplo sem valor real; validação das variáveis na inicialização (a API não sobe com configuração incompleta) |
 | Logs | Sem senhas, tokens ou corpo completo de requisições |
 | Swagger | Desligado por padrão em produção |
 | Auditoria | Eventos de RN-10 gravados com autor e IP |
-| Dependências | Dependabot e `npm audit` no CI |
+| Dependências | `npm audit` (nível alto) no CI |
+| Frontend | Cabeçalhos `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy` e CSP mínima (`frame-ancestors`, `base-uri`, `object-src`, `form-action`); sem `dangerouslySetInnerHTML` |
 
 Riscos conhecidos e aceitos nesta versão: sem verificação de e-mail no cadastro, sem autenticação em dois fatores, sem bloqueio de conta por tentativas (há apenas rate limiting).
 
@@ -704,20 +711,24 @@ Riscos conhecidos e aceitos nesta versão: sem verificação de e-mail no cadast
 
 | Nível | Ferramenta | O que cobre |
 |---|---|---|
-| Unitário | Jest | Regras puras: transições de status, cálculo e recálculo de SLA, pausa, violação de SLA, permissões de visibilidade |
-| Serviço | Jest | Serviços de módulo com o acesso a dados simulado: criação de chamado, atribuição, comentários internos |
-| E2E (previsto) | Jest + Supertest com PostgreSQL real | Fluxos completos de autenticação, ciclo do chamado, isolamento entre solicitantes, permissões por perfil, upload e download de anexo, dashboard |
-| Estático | ESLint, Prettier, `tsc --noEmit` | Estilo e tipagem |
+| Unitário | Jest | Regras puras (`*.rules.ts`): transições de status, SLA e pausa, visibilidade, anexos (tipo pelos bytes, nomes), gerador do seed de demonstração |
+| Serviço e HTTP | Jest, Supertest | Serviços com repositórios em memória; controllers com guards reais, `multer` real e Prisma simulado |
+| Ponta a ponta | Jest, Supertest, PostgreSQL real | 27 testes: cookie e rotação do refresh token (inclusive reuso), perfis, ciclo completo do chamado, pausa de SLA, comentários internos ocultos ao solicitante, upload e download de anexo (413 e 422), regras de ativos, dashboard, auditoria sem segredos, cabeçalhos e limite de requisições |
+| Estático | ESLint (inclui `react-hooks`), `tsc --noEmit` | Estilo e tipagem em API, testes e web |
 
-Meta inicial de cobertura: acima de 80% nas regras de negócio. O pipeline de CI executa tipos, lint, testes e build a cada push e pull request.
+Comandos: `npm test` (unitários), `npm run test:e2e` (exige `DATABASE_URL` apontando para um banco com as migrations aplicadas), `npm run typecheck`, `npm run lint`, `npm run typecheck:web`, `npm run lint:web`.
+
+**Verificado:** os repositórios Prisma e a API inteira foram exercitados contra um PostgreSQL 16 real, e o fluxo do frontend (login, abertura de chamado, comentário interno, anexo, mudança de status, painel, ativos, usuários, auditoria) foi percorrido em um navegador real sem erros de console nem de rede.
+
+**Não verificado no ambiente de desenvolvimento:** a construção das imagens Docker (o ambiente não alcançava o Docker Hub) e a execução do pipeline no GitHub Actions. O job `docker` do CI constrói as duas imagens a cada push justamente para cobrir isso.
 
 ## 15. Infraestrutura e CI
 
-- **Docker Compose:** hoje sobe o `postgres` (16) com healthcheck, com a porta de desenvolvimento ligada somente a `127.0.0.1`. Os serviços `api` e `web` entram junto com os Dockerfiles (previstos).
-- **Dockerfiles (previstos):** multi-stage (dependências, build, imagem final enxuta, usuário não-root).
-- **GitHub Actions:** dois jobs, `api` e `web`. Instalam dependências com lockfile e rodam checagem de tipos, lint, testes, build e `npm audit` (nível alto). O job da API sobe um serviço PostgreSQL.
-- **Migrations:** versionadas no repositório e aplicadas com `prisma migrate deploy` na implantação.
-- **Deploy alvo:** frontend na Vercel e API com banco gerenciado em um provedor de container (a definir). Para cookie de refresh funcionar entre domínios, web e API devem compartilhar o domínio pai, ou a API ficar atrás de um proxy reverso no mesmo domínio.
+- **Docker Compose:** sobe `postgres` (16), `api` e `web`, com healthchecks, volume para anexos e portas ligadas somente a `127.0.0.1`. A API roda em modo `development` no Compose porque o acesso local é por HTTP; em produção ela exige HTTPS, `NODE_ENV=production` e `COOKIE_SECURE=true` e recusa subir sem isso.
+- **Dockerfiles:** multi-stage (dependências, build, imagem final enxuta), usuário não-root e `HEALTHCHECK`. A API aplica `prisma migrate deploy` ao iniciar e, com `SEED_ON_START=true`, executa o seed. O web usa `output: 'standalone'`.
+- **GitHub Actions:** jobs `api` (tipos, lint, testes unitários, migrations e testes e2e contra um serviço PostgreSQL, build), `web` (tipos, lint, build) e `docker` (build das duas imagens), além de `npm audit` em nível alto.
+- **Migrations:** versionadas no repositório e aplicadas com `prisma migrate deploy`.
+- **Deploy alvo:** frontend na Vercel e API com banco gerenciado em um provedor de container (a definir). Para o cookie de refresh funcionar, web e API devem compartilhar o domínio pai (o cookie é `SameSite=Strict`), ou a API ficar atrás de um proxy reverso no mesmo domínio.
 
 ## 16. Variáveis de ambiente
 
@@ -737,41 +748,50 @@ Meta inicial de cobertura: acima de 80% nas regras de negócio. O pipeline de CI
 | `SEED_ADMIN_PASSWORD` | Senha dos usuários do seed (só desenvolvimento) | definir localmente |
 | `NEXT_PUBLIC_API_URL` | URL da API usada pelo frontend | `http://localhost:3001/api` |
 
-O arquivo `.env.example` do repositório lista esses nomes (sem valores reais), além de `AUTO_CLOSE_INTERVAL_MINUTES` (padrão `15`), `SEED_ADMIN_EMAIL`, `SEED_DEMO` e as variáveis do banco no Docker Compose (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`).
+O arquivo `.env.example` lista todas essas variáveis (sem valores reais), além de `AUTO_CLOSE_INTERVAL_MINUTES` (padrão `15`; `0` desliga), `RATE_LIMIT_ENABLED` (padrão `true`; só deve ser `false` em testes automatizados, e a API recusa isso em produção), `SEED_ON_START`, `SEED_ADMIN_EMAIL`, `SEED_DEMO` e as variáveis do banco no Docker Compose (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`; use só letras e números na senha, pois ela entra na `DATABASE_URL`).
 
 ## 17. Roadmap de implementação
 
-| Fase | Entrega | Critério de pronto | Situação |
-|---|---|---|---|
-| 0 | Definição (este README) | Escopo, requisitos, regras, modelo e API revisados | Concluída |
-| 1 | Fundação | Monorepo, Docker Compose, schema Prisma com migration inicial, configuração validada, health check, CI verde | Concluída |
-| 2 | Autenticação e usuários | Cadastro, login, refresh rotativo, logout, perfis, gestão de usuários, testes | Concluída |
-| 3 | Chamados | Abertura, listagem com filtros, atribuição, status, comentários, histórico, anexos, testes das regras | Em andamento (falta anexos) |
-| 4 | SLA e ativos | Políticas, cálculo e pausa, violação; cadastro e vínculo de ativos | Concluída |
-| 5 | Dashboard e auditoria | Indicadores e log filtrável | Concluída (API) |
-| 6 | Frontend | Telas da seção 12 consumindo a API real | Em andamento |
-| 7 | Endurecimento | Revisão de segurança, cobertura, documentação Swagger, ajustes de desempenho | Pendente |
-| 8 | Publicação | Deploy, prints das telas e demonstração no README | Pendente |
-
-Ao final de cada fase, este README é atualizado para refletir o que realmente existe, mantendo a distinção entre "implementado" e "planejado".
+| Fase | Entrega | Situação |
+|---|---|---|
+| 0 | Definição (este README) | Concluída |
+| 1 | Fundação: monorepo, Docker Compose, schema Prisma, configuração validada, health check, CI | Concluída |
+| 2 | Autenticação e usuários | Concluída |
+| 3 | Chamados: abertura, filtros, atribuição, status, comentários, histórico, anexos | Concluída |
+| 4 | SLA e ativos | Concluída |
+| 5 | Dashboard e auditoria | Concluída |
+| 6 | Frontend com todas as telas da seção 12 | Concluída |
+| 7 | Endurecimento: e2e contra PostgreSQL, cabeçalhos de segurança, Swagger, Dockerfiles | Concluída |
+| 8 | Publicação em um provedor e demonstração online | Pendente (depende de escolher a hospedagem) |
 
 ## 18. Como rodar
 
 Pré-requisitos: Node.js 24.9 ou superior, Docker e Docker Compose.
 
+### Tudo em contêineres
+
 ```bash
 git clone https://github.com/MatheusAnsel/ITSM.git
 cd ITSM
-cp .env.example .env          # preencher JWT_ACCESS_SECRET, POSTGRES_PASSWORD e SEED_ADMIN_PASSWORD
-docker compose up -d          # banco PostgreSQL
-npm install
-npm run db:migrate            # aplica as migrations
-npm run db:seed               # categorias, SLA e administrador (com SEED_DEMO=true, também dados de demonstração)
-npm run dev:api               # API em http://localhost:3001
-npm run dev:web               # Web em http://localhost:3000 (painel, chamados e ativos ainda com dados de demonstração)
+cp .env.example .env
+# preencha JWT_ACCESS_SECRET (openssl rand -base64 48), POSTGRES_PASSWORD (letras e números)
+# e SEED_ADMIN_PASSWORD (mínimo de 10 caracteres); para dados de exemplo use SEED_DEMO=true e SEED_ON_START=true
+docker compose up --build
 ```
 
-Os serviços `api` e `web` ainda não têm Dockerfile, por isso rodam direto no Node e só o banco sobe pelo Docker Compose. Com `SWAGGER_ENABLED=true`, a documentação da API fica em `/api/docs`.
+Web em http://localhost:3000, API em http://localhost:3001/api e Swagger em http://localhost:3001/api/docs. Com `SEED_DEMO=true`, o seed cria gestor, atendentes, solicitantes, ativos e 48 chamados; todos usam a senha definida em `SEED_ADMIN_PASSWORD` (`admin@itsm.local`, `gestor@itsm.local`, `atendente@itsm.local`, `solicitante@itsm.local`).
+
+### Desenvolvimento local
+
+```bash
+cp .env.example .env          # mesmos campos acima
+docker compose up -d postgres # apenas o banco
+npm install
+npm run db:migrate            # aplica as migrations
+npm run db:seed               # categorias, SLA, administrador (e demonstração com SEED_DEMO=true)
+npm run dev:api               # http://localhost:3001
+npm run dev:web               # http://localhost:3000
+```
 
 ## 19. Decisões em aberto
 
@@ -782,6 +802,7 @@ Os serviços `api` e `web` ainda não têm Dockerfile, por isso rodam direto no 
 | Gerenciador de pacotes | npm ou pnpm no monorepo? | npm workspaces, para reduzir dependências de ferramenta |
 | Notificações | E-mail ao mudar o status? | Fora desta versão |
 | Hospedagem da API | Qual provedor? | A definir na fase 8 |
+| Concorrência em anexos | Tratar conflito de serialização (P2034) com nova tentativa? | Hoje é raro e resulta em erro 500; repetir a transação é a evolução natural |
 | Cadastro aberto | Manter auto-cadastro em produção? | Manter apenas na demonstração; em uso real, só criação por administrador |
 
 ## 20. Licença e autor

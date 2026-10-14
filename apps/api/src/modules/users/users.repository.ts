@@ -30,6 +30,7 @@ const SELECT = {
 export abstract class UsersRepository {
   abstract list(filter: UserFilter): Promise<{ items: UserView[]; total: number }>;
   abstract listActiveStaff(): Promise<Pick<UserView, 'id' | 'name' | 'role'>[]>;
+  abstract listActive(): Promise<Pick<UserView, 'id' | 'name' | 'role'>[]>;
   abstract findById(id: string): Promise<UserView | null>;
   abstract findByEmail(email: string): Promise<UserView | null>;
   abstract create(data: { name: string; email: string; passwordHash: string; role: RoleName }): Promise<UserView>;
@@ -72,6 +73,14 @@ export class PrismaUsersRepository extends UsersRepository {
   listActiveStaff(): Promise<Pick<UserView, 'id' | 'name' | 'role'>[]> {
     return this.prisma.user.findMany({
       where: { active: true, role: { in: ['AGENT', 'MANAGER', 'ADMIN'] } },
+      select: { id: true, name: true, role: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  listActive(): Promise<Pick<UserView, 'id' | 'name' | 'role'>[]> {
+    return this.prisma.user.findMany({
+      where: { active: true },
       select: { id: true, name: true, role: true },
       orderBy: { name: 'asc' },
     });
