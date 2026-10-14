@@ -41,6 +41,9 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test
+      # Testes de integração: AppModule inteiro contra o PostgreSQL real do serviço acima.
+      - run: npm run db:deploy
+      - run: npm run test:e2e -w apps/api
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=high
 
@@ -57,3 +60,24 @@ jobs:
       - run: npm run lint:web
       - run: npm run build:web
       - run: npm audit --omit=dev --audit-level=high -w apps/web
+
+  # Garante que as imagens continuam construindo (sem publicar nada).
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: false
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web

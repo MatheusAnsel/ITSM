@@ -1,3 +1,11 @@
+# Stack completa para rodar localmente: banco + API + web.
+#   cp .env.example .env   (preencha as senhas e o JWT_ACCESS_SECRET)
+#   docker compose up --build
+# Só o banco (para desenvolver com `npm run dev:api` e `npm run dev:web`):
+#   docker compose up -d postgres
+#
+# Atenção: esta configuração é para uso local, por HTTP. Em produção a API deve rodar atrás de
+# HTTPS, com NODE_ENV=production e COOKIE_SECURE=true (a API recusa subir sem isso).
 services:
   postgres:
     image: postgres:16-alpine
@@ -16,5 +24,45 @@ services:
       timeout: 3s
       retries: 10
 
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-itsm}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-itsm}
+      NODE_ENV: development
+      PORT: 3001
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?defina JWT_ACCESS_SECRET no .env}
+      COOKIE_SECURE: "false"
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+      # Cria categorias, SLA e o administrador na subida; SEED_DEMO=true acrescenta dados de exemplo.
+      SEED_ON_START: ${SEED_ON_START:-false}
+      SEED_DEMO: ${SEED_DEMO:-false}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@itsm.local}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - uploads:/data/uploads
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+
 volumes:
   pgdata:
+  uploads:
