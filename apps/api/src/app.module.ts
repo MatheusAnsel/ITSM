@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AssetsModule } from './modules/assets/assets.module';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -27,6 +28,7 @@ import { PrismaModule } from './prisma/prisma.module';
     SlaModule,
     DashboardModule,
     TicketsModule,
+    AttachmentsModule,
     HealthModule,
   ],
   providers: [

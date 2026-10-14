@@ -54,7 +54,7 @@ describe('API HTTP (AppModule inteiro, Prisma simulado)', () => {
   });
 
   it('rotas protegidas respondem 401 sem token', async () => {
-    for (const path of ['/tickets', '/users', '/categories', '/auth/me', `/tickets/${UUID}`]) {
+    for (const path of ['/tickets', '/users', '/categories', '/auth/me', `/tickets/${UUID}`, `/tickets/${UUID}/attachments`]) {
       await http().get(path).expect(401);
     }
   });
