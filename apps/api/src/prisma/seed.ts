@@ -4,6 +4,7 @@ import * as bcrypt from 'bcryptjs';
 import { SYSTEM_USER_EMAIL, SYSTEM_USER_NAME } from '../common/system-user';
 import { BCRYPT_COST, normalizeEmail, validatePassword } from '../modules/auth/auth.rules';
 import { DEFAULT_SLA, PRIORITIES } from '../modules/tickets/ticket.rules';
+import { buildDemoTickets } from './seed-demo';
 
 const prisma = new PrismaClient();
 
@@ -65,33 +66,95 @@ async function seedDemo(): Promise<void> {
   const password = process.env.SEED_ADMIN_PASSWORD ?? '';
   const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
   const people = [
-    ['Gestor Demo', 'gestor@itsm.local', 'MANAGER'],
-    ['Atendente Demo', 'atendente@itsm.local', 'AGENT'],
-    ['Solicitante Demo', 'solicitante@itsm.local', 'REQUESTER'],
+    ['gestor', 'Gestor Demo', 'gestor@itsm.local', 'MANAGER'],
+    ['atendente', 'Atendente Demo', 'atendente@itsm.local', 'AGENT'],
+    ['diego', 'Diego Martins', 'diego.martins@itsm.local', 'AGENT'],
+    ['elisa', 'Elisa Prado', 'elisa.prado@itsm.local', 'AGENT'],
+    ['solicitante', 'Solicitante Demo', 'solicitante@itsm.local', 'REQUESTER'],
+    ['ana', 'Ana Ribeiro', 'ana.ribeiro@itsm.local', 'REQUESTER'],
+    ['bruno', 'Bruno Alves', 'bruno.alves@itsm.local', 'REQUESTER'],
+    ['carla', 'Carla Nunes', 'carla.nunes@itsm.local', 'REQUESTER'],
   ] as const;
-  for (const [name, email, role] of people) {
-    await prisma.user.upsert({
+  const idOf = new Map<string, string>();
+  for (const [key, name, email, role] of people) {
+    const user = await prisma.user.upsert({
       where: { email },
       create: { name, email, passwordHash, role },
       update: {},
     });
+    idOf.set(key, user.id);
   }
-  const requester = await prisma.user.findUniqueOrThrow({
-    where: { email: 'solicitante@itsm.local' },
-  });
+  const system = await prisma.user.findUniqueOrThrow({ where: { email: SYSTEM_USER_EMAIL } });
+  idOf.set('sistema', system.id);
+
   const assets = [
-    ['NB-0001', 'Notebook Dell Latitude 5440', 'NOTEBOOK', 'IN_USE', requester.id],
+    ['NB-0001', 'Notebook Dell Latitude 5440', 'NOTEBOOK', 'IN_USE', 'solicitante'],
     ['NB-0002', 'Notebook Lenovo ThinkPad E14', 'NOTEBOOK', 'IN_STOCK', null],
+    ['NB-0003', 'Notebook HP ProBook 440', 'NOTEBOOK', 'IN_USE', 'ana'],
+    ['DT-0001', 'Desktop Dell OptiPlex 3000', 'DESKTOP', 'IN_USE', 'bruno'],
     ['MN-0001', 'Monitor LG 24 polegadas', 'MONITOR', 'IN_STOCK', null],
+    ['MN-0002', 'Monitor Dell 27 polegadas', 'MONITOR', 'IN_USE', 'carla'],
     ['IM-0001', 'Impressora HP LaserJet Pro', 'PRINTER', 'MAINTENANCE', null],
     ['SW-0001', 'Switch 24 portas', 'NETWORK', 'IN_USE', null],
+    ['SV-0001', 'Servidor de arquivos', 'SERVER', 'IN_USE', null],
+    ['PH-0001', 'Telefone IP Yealink', 'PHONE', 'RETIRED', null],
   ] as const;
-  for (const [tag, name, type, status, assignedToId] of assets) {
-    await prisma.asset.upsert({
+  const assetId = new Map<string, string>();
+  for (const [tag, name, type, status, owner] of assets) {
+    const asset = await prisma.asset.upsert({
       where: { tag },
-      create: { tag, name, type, status, assignedToId: status === 'IN_USE' ? assignedToId : null },
+      create: { tag, name, type, status, assignedToId: owner ? idOf.get(owner) : null },
       update: {},
     });
+    assetId.set(tag, asset.id);
+  }
+
+  // Chamados só entram em banco vazio: rodar o seed de novo não duplica nada.
+  if ((await prisma.ticket.count()) === 0) {
+    const categories = new Map((await prisma.category.findMany()).map((c) => [c.name, c.id]));
+    const person = (key: string): string => {
+      const id = idOf.get(key);
+      if (!id) throw new Error(`Pessoa de demonstração desconhecida: ${key}`);
+      return id;
+    };
+    for (const t of buildDemoTickets(new Date())) {
+      await prisma.ticket.create({
+        data: {
+          title: t.title,
+          description: t.description,
+          status: t.status,
+          priority: t.priority,
+          categoryId: categories.get(t.categoryName) ?? [...categories.values()][0],
+          requesterId: person(t.requesterKey),
+          assigneeId: t.assigneeKey ? person(t.assigneeKey) : null,
+          assetId: t.assetTag ? (assetId.get(t.assetTag) ?? null) : null,
+          createdAt: t.createdAt,
+          responseDueAt: t.responseDueAt,
+          resolutionDueAt: t.resolutionDueAt,
+          slaPausedAt: t.slaPausedAt,
+          firstRespondedAt: t.firstRespondedAt,
+          resolvedAt: t.resolvedAt,
+          closedAt: t.closedAt,
+          history: {
+            create: t.history.map((h) => ({
+              actorId: person(h.actorKey),
+              action: h.action,
+              fromValue: h.fromValue,
+              toValue: h.action === 'ASSIGNEE_CHANGED' && h.toValue ? person(h.toValue) : h.toValue,
+              createdAt: h.createdAt,
+            })),
+          },
+          comments: {
+            create: t.comments.map((c) => ({
+              authorId: person(c.authorKey),
+              body: c.body,
+              internal: c.internal,
+              createdAt: c.createdAt,
+            })),
+          },
+        },
+      });
+    }
   }
   console.log('Dados de demonstração criados (usuários com a mesma senha do administrador).');
 }
