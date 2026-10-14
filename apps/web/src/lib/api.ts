@@ -1,4 +1,4 @@
-import { getAccessToken, notifySessionExpired, setAccessToken } from './session';
+import { getAccessToken, hasSessionHint, notifySessionExpired, setAccessToken, setSessionHint } from './session';
 import type {
   Agent,
   AgentStat,
@@ -59,10 +59,12 @@ let refreshing: Promise<SessionUser | null> | null = null;
 
 export function refreshSession(): Promise<SessionUser | null> {
   refreshing ??= (async () => {
+    if (!hasSessionHint()) return null;
     try {
       const res = await send('/auth/refresh', { method: 'POST' }, null);
       if (!res.ok) {
         setAccessToken(null);
+        setSessionHint(false);
         return null;
       }
       const body = (await res.json()) as { accessToken: string; user: SessionUser };
@@ -124,6 +126,7 @@ async function authenticate(path: string, payload: unknown): Promise<SessionUser
   if (!res.ok) return fail(res);
   const body = (await res.json()) as AuthResult;
   setAccessToken(body.accessToken);
+  setSessionHint(true);
   return body.user;
 }
 
@@ -136,6 +139,7 @@ export async function logout(): Promise<void> {
     await request<void>('POST', '/auth/logout');
   } finally {
     setAccessToken(null);
+    setSessionHint(false);
   }
 }
 
@@ -200,6 +204,8 @@ export const updateCategory = (id: string, change: { name?: string; description?
   request<Category>('PATCH', `/categories/${id}`, change);
 
 export const listAgents = () => request<Agent[]>('GET', '/users/agents');
+// Diretório de usuários ativos (gestor/admin) para escolher responsável por um ativo.
+export const listDirectory = () => request<Agent[]>('GET', '/users/directory');
 export const listUsers = (query: { search?: string; role?: Role | ''; page?: number; pageSize?: number }) =>
   request<Page<UserRecord>>('GET', `/users${qs(query)}`);
 export const createUser = (input: { name: string; email: string; password: string; role: Role }) =>

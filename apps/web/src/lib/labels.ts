@@ -47,12 +47,17 @@ export const ROLE_LABEL: Record<Role, string> = {
   REQUESTER: 'Solicitante',
 };
 
-// Rótulo do botão que leva o chamado para cada status.
-export const TRANSITION_LABEL: Record<TicketStatus, string> = {
-  OPEN: 'Reabrir',
-  IN_PROGRESS: 'Em atendimento',
-  WAITING_USER: 'Aguardar usuário',
-  RESOLVED: 'Marcar como resolvido',
-  CLOSED: 'Fechar chamado',
-  CANCELLED: 'Cancelar chamado',
-};
+// Rótulo do botão que leva o chamado de um status a outro.
+export function transitionLabel(from: TicketStatus, to: TicketStatus): string {
+  if (from === 'RESOLVED' && to === 'IN_PROGRESS') return 'Reabrir chamado';
+  if (from === 'WAITING_USER' && to === 'IN_PROGRESS') return 'Retomar atendimento';
+  const labels: Record<TicketStatus, string> = {
+    OPEN: 'Reabrir',
+    IN_PROGRESS: 'Iniciar atendimento',
+    WAITING_USER: 'Aguardar usuário',
+    RESOLVED: 'Marcar como resolvido',
+    CLOSED: 'Fechar chamado',
+    CANCELLED: 'Cancelar chamado',
+  };
+  return labels[to];
+}

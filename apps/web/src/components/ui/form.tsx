@@ -1,7 +1,7 @@
 import { cn } from '@/lib/cn';
 
 export const inputClass =
-  'h-9 w-full rounded-lg border border-line bg-panel px-3 text-[13px] text-ink placeholder:text-ink-3 focus:border-line-strong disabled:opacity-50';
+  'h-9 rounded-lg border border-line bg-panel px-3 text-[13px] text-ink placeholder:text-ink-3 focus:border-line-strong disabled:opacity-50';
 
 export function Field({
   label,
@@ -29,16 +29,19 @@ export function Field({
   );
 }
 
+// Largura total por padrão; quem passa uma classe de largura (w-auto, w-[150px], flex-1...) assume o controle.
+const sized = (className?: string) => (className && /(^|\s)(w|flex)-/.test(className) ? '' : 'w-full');
+
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={cn(inputClass, props.className)} />;
+  return <input {...props} className={cn(inputClass, sized(props.className), props.className)} />;
 }
 
 export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select {...props} className={cn(inputClass, 'pr-8', props.className)} />;
+  return <select {...props} className={cn(inputClass, sized(props.className), 'pr-8', props.className)} />;
 }
 
 export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} className={cn(inputClass, 'h-auto min-h-[96px] py-2 leading-relaxed', props.className)} />;
+  return <textarea {...props} className={cn(inputClass, sized(props.className), 'h-auto min-h-[96px] py-2 leading-relaxed', props.className)} />;
 }
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';

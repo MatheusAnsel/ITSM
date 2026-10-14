@@ -23,7 +23,7 @@ import {
   updateTicket,
 } from '@/lib/api';
 import { formatDateTime, slaText } from '@/lib/format';
-import { PRIORITY_LABEL, TRANSITION_LABEL } from '@/lib/labels';
+import { PRIORITY_LABEL, transitionLabel } from '@/lib/labels';
 import { isStaff, PRIORITIES, type Priority, type Ticket, type TicketStatus } from '@/lib/types';
 import { Attachments } from './attachments';
 import { Comments } from './comments';
@@ -171,7 +171,7 @@ export function TicketDetail() {
                     disabled={busy}
                     onClick={() => (CONFIRM[to] ? setConfirming(to) : void run(() => changeTicketStatus(t.id, to)))}
                   >
-                    {TRANSITION_LABEL[to]}
+                    {transitionLabel(t.status, to)}
                   </Button>
                 ))}
               </div>
@@ -189,7 +189,7 @@ export function TicketDetail() {
                   value={t.category.id}
                   disabled={busy}
                   onChange={(e) => void run(() => updateTicket(t.id, { categoryId: e.target.value }))}
-                  className="h-8 w-[150px] text-xs"
+                  className="h-8 w-[170px] text-xs"
                 >
                   {categories.data
                     .filter((c) => c.active || c.id === t.category.id)
@@ -208,7 +208,7 @@ export function TicketDetail() {
                   value={t.priority}
                   disabled={busy}
                   onChange={(e) => void run(() => updateTicket(t.id, { priority: e.target.value as Priority }))}
-                  className="h-8 w-[150px] text-xs"
+                  className="h-8 w-[170px] text-xs"
                 >
                   {PRIORITIES.map((p) => (
                     <option key={p} value={p}>{PRIORITY_LABEL[p]}</option>
@@ -226,7 +226,7 @@ export function TicketDetail() {
                     value={t.assignee?.id ?? ''}
                     disabled={busy || !agents.data}
                     onChange={(e) => e.target.value && void run(() => assignTicket(t.id, e.target.value))}
-                    className="h-8 w-[150px] text-xs"
+                    className="h-8 w-[170px] text-xs"
                   >
                     {!t.assignee && <option value="">Sem atendente</option>}
                     {agents.data?.map((a) => (
@@ -274,7 +274,7 @@ export function TicketDetail() {
           open
           title={CONFIRM[confirming].title}
           message={CONFIRM[confirming].message}
-          confirmLabel={TRANSITION_LABEL[confirming]}
+          confirmLabel={transitionLabel(t.status, confirming)}
           danger={CONFIRM[confirming].danger}
           busy={busy}
           onConfirm={() => void run(() => changeTicketStatus(t.id, confirming))}

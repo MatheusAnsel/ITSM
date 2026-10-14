@@ -1,50 +1,60 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { ApiError } from '@/lib/api';
 
 export interface AsyncState<T> {
   data: T | null;
   error: string | null;
   errorStatus: number | null;
+  // true enquanto há uma busca em andamento; `data` mantém o último resultado até chegar o novo.
   loading: boolean;
   reload: () => void;
+}
+
+interface Settled<T> {
+  token: string;
+  data: T | null;
+  error: string | null;
+  errorStatus: number | null;
 }
 
 // Carrega dados e refaz a busca quando as dependências mudam. Respostas antigas são descartadas
 // para que um filtro trocado rápido não exiba o resultado da busca anterior.
 export function useAsync<T>(load: () => Promise<T>, deps: readonly unknown[]): AsyncState<T> {
-  const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [errorStatus, setErrorStatus] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
-  const latest = useRef(0);
-  const loadRef = useRef(load);
-  loadRef.current = load;
+  const [settled, setSettled] = useState<Settled<T>>({ token: '', data: null, error: null, errorStatus: null });
+  const token = `${JSON.stringify(deps)}#${tick}`;
+  const run = useEffectEvent(load);
 
   useEffect(() => {
-    const id = ++latest.current;
-    setLoading(true);
-    loadRef
-      .current()
-      .then((value) => {
-        if (id !== latest.current) return;
-        setData(value);
-        setError(null);
-        setErrorStatus(null);
-      })
-      .catch((e: unknown) => {
-        if (id !== latest.current) return;
-        setError(e instanceof ApiError ? e.message : 'Erro inesperado');
-        setErrorStatus(e instanceof ApiError ? e.status : null);
-      })
-      .finally(() => {
-        if (id === latest.current) setLoading(false);
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...deps, tick]);
+    let cancelled = false;
+    run().then(
+      (data) => {
+        if (!cancelled) setSettled({ token, data, error: null, errorStatus: null });
+      },
+      (e: unknown) => {
+        if (cancelled) return;
+        setSettled((prev) => ({
+          token,
+          data: prev.data,
+          error: e instanceof ApiError ? e.message : 'Erro inesperado',
+          errorStatus: e instanceof ApiError ? e.status : null,
+        }));
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const reload = useCallback(() => setTick((n) => n + 1), []);
-  return { data, error, errorStatus, loading, reload };
+  const current = settled.token === token;
+  return {
+    data: settled.data,
+    error: current ? settled.error : null,
+    errorStatus: current ? settled.errorStatus : null,
+    loading: !current,
+    reload,
+  };
 }

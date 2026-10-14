@@ -20,6 +20,18 @@ import { isStaff, PRIORITIES, type Priority, TICKET_STATUSES, type Ticket, type 
 
 const PER_PAGE = 15;
 
+// Aplica mudanças nos filtros da URL; qualquer filtro novo volta para a primeira página.
+function buildUrl(current: URLSearchParams, changes: Record<string, string | undefined>): string {
+  const next = new URLSearchParams(current.toString());
+  for (const [k, v] of Object.entries(changes)) {
+    if (v) next.set(k, v);
+    else next.delete(k);
+  }
+  if (!('page' in changes)) next.delete('page');
+  const s = next.toString();
+  return s ? `/tickets?${s}` : '/tickets';
+}
+
 export function TicketsView() {
   const user = useUser();
   const staff = isStaff(user.role);
@@ -35,25 +47,20 @@ export function TicketsView() {
   const page = Math.max(1, Number(params.get('page')) || 1);
 
   // O estado dos filtros vive na URL: dá para recarregar, compartilhar e usar o botão voltar.
-  function update(changes: Record<string, string | undefined>) {
-    const next = new URLSearchParams(params.toString());
-    for (const [k, v] of Object.entries(changes)) {
-      if (v) next.set(k, v);
-      else next.delete(k);
-    }
-    if (!('page' in changes)) next.delete('page');
-    const s = next.toString();
-    router.replace(s ? `/tickets?${s}` : '/tickets', { scroll: false });
-  }
+  const update = (changes: Record<string, string | undefined>) => router.replace(buildUrl(params, changes), { scroll: false });
 
+  // O campo reflete a URL (a busca do topo também escreve nela) e só grava de volta após uma pausa na digitação.
   const [term, setTerm] = useState(q);
-  useEffect(() => setTerm(q), [q]);
+  const [seenQ, setSeenQ] = useState(q);
+  if (q !== seenQ) {
+    setSeenQ(q);
+    setTerm(q);
+  }
   useEffect(() => {
     if (term.trim() === q) return;
-    const t = setTimeout(() => update({ q: term.trim() || undefined }), 350);
+    const t = setTimeout(() => router.replace(buildUrl(params, { q: term.trim() || undefined }), { scroll: false }), 350);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [term]);
+  }, [term, q, params, router]);
 
   const categories = useAsync(listCategories, []);
   const query: TicketQuery = {
@@ -97,10 +104,10 @@ export function TicketsView() {
       key: 'sla',
       header: 'SLA',
       align: 'right',
-      width: '190px',
+      width: '210px',
       render: (t) => (
         <div className="flex items-center justify-end gap-2">
-          <span className="text-xs text-ink-3">{slaText(t)}</span>
+          <span className="whitespace-nowrap text-xs text-ink-3">{slaText(t)}</span>
           <SlaBadge value={t.sla.resolution} />
         </div>
       ),
