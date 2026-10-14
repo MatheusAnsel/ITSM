@@ -18,7 +18,11 @@ import { PrismaModule } from './prisma/prisma.module';
 // Ordem dos guards globais: limite de requisições, autenticação, perfil.
 @Module({
   imports: [
-    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 100 }]),
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: 'default', ttl: 60_000, limit: 100 }],
+      // Desligado apenas por RATE_LIMIT_ENABLED=false (testes); a API recusa essa opção em produção.
+      skipIf: () => process.env.RATE_LIMIT_ENABLED === 'false',
+    }),
     PrismaModule,
     AuditModule,
     AuthModule,

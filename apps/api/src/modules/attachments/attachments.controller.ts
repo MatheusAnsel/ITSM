@@ -10,6 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { memoryStorage } from 'multer';
 import { AuthUser, CurrentUser } from '../../common/decorators/auth.decorators';
@@ -31,6 +32,14 @@ export class AttachmentsController {
 
   @Audit({ action: 'ATTACHMENT_UPLOADED', entity: 'Attachment', entityId: fromResult() })
   @Post()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: { file: { type: 'string', format: 'binary', description: 'PNG, JPEG, PDF, TXT ou LOG (até MAX_UPLOAD_MB)' } },
+    },
+  })
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: LIMIT, files: 1 } }))
   upload(
     @CurrentUser() user: AuthUser,
