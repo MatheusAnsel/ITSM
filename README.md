@@ -4,6 +4,26 @@ Sistema web para registrar, acompanhar e resolver chamados de suporte de TI, con
 
 > **Status: escopo completo.** API, frontend, testes (unitários e de ponta a ponta contra PostgreSQL real), Docker Compose e CI estão implementados. O que foi e o que não foi verificado está descrito na seção [14](#14-estratégia-de-testes-e-qualidade).
 
+## Demonstração online
+
+**Acesse: https://itsm-demo-six.vercel.app**
+
+Não precisa instalar nada. A demonstração já vem com 48 chamados em todos os status, ativos, categorias e políticas de SLA.
+
+| Perfil | E-mail | Senha | O que dá para ver |
+|---|---|---|---|
+| Gestor | `gestor@itsm.local` | `Demo-Itsm-2026` | Painel gerencial, SLA, ativos, usuários e auditoria |
+| Atendente | `atendente@itsm.local` | `Demo-Itsm-2026` | Fila, atribuição, comentários internos, mudança de status |
+| Solicitante | `solicitante@itsm.local` | `Demo-Itsm-2026` | Abertura de chamado e acompanhamento do próprio atendimento |
+
+Roteiro sugerido de 3 minutos: entre como solicitante e abra um chamado; saia e entre como atendente para assumir, comentar (nota interna e pública) e resolver; por fim, entre como gestor e veja o painel e o log de auditoria.
+
+Avisos da hospedagem gratuita:
+
+- A API dorme após cerca de 15 minutos sem uso. Se a primeira tentativa de login falhar, aguarde cerca de um minuto e tente de novo.
+- Anexos enviados não são guardados de forma permanente.
+- Os dados são fictícios e a senha acima é pública de propósito. Não cadastre informações reais.
+
 ## Telas
 
 | | |
@@ -722,7 +742,7 @@ Comandos: `npm test` (unitários), `npm run test:e2e` (exige `DATABASE_URL` apon
 
 **Verificado no GitHub Actions:** os jobs `api` (tipos, lint, testes unitários, migrations, seed, 27 testes e2e contra PostgreSQL 16 e build), `web` e `docker` (build das duas imagens) passam na `main`.
 
-**Ainda não verificado:** a publicação em si (Supabase, Render e Vercel), que depende de criar as contas.
+**Publicado:** a demonstração roda na Vercel (web) e no Render (API e PostgreSQL), e o endpoint `/api/health` responde pelo domínio da Vercel, o que confirma o repasse de `/api` até o banco.
 
 ## 15. Infraestrutura e CI
 
@@ -730,7 +750,7 @@ Comandos: `npm test` (unitários), `npm run test:e2e` (exige `DATABASE_URL` apon
 - **Dockerfiles:** multi-stage (dependências, build, imagem final enxuta), usuário não-root e `HEALTHCHECK`. A API aplica `prisma migrate deploy` ao iniciar e, com `SEED_ON_START=true`, executa o seed. O web usa `output: 'standalone'`.
 - **GitHub Actions:** jobs `api` (tipos, lint, testes unitários, migrations e testes e2e contra um serviço PostgreSQL, build), `web` (tipos, lint, build) e `docker` (build das duas imagens), além de `npm audit` em nível alto.
 - **Migrations:** versionadas no repositório e aplicadas com `prisma migrate deploy`.
-- **Hospedagem (modo demonstração):** frontend na Vercel, API no Render (imagem Docker, `render.yaml`) e PostgreSQL no Supabase. A Vercel repassa `/api` para o Render (`API_PROXY_TARGET`), então o navegador fala só com um domínio e o cookie de refresh (`SameSite=Strict`) continua válido. Passo a passo, limitações do plano gratuito e usuários de demonstração em [docs/DEPLOY.md](docs/DEPLOY.md).
+- **Hospedagem (modo demonstração):** frontend na Vercel, API no Render (imagem Docker, `render.yaml`) e PostgreSQL gratuito do Render. A Vercel repassa `/api` para o Render (`API_PROXY_TARGET`), então o navegador fala só com um domínio e o cookie de refresh (`SameSite=Strict`) continua válido. Passo a passo, limitações do plano gratuito e usuários de demonstração em [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## 16. Variáveis de ambiente
 
@@ -803,7 +823,7 @@ npm run dev:web               # http://localhost:3000
 | Anexos em produção | Disco local ou storage S3-compatível? | Interface de armazenamento abstrata; escolher ao publicar |
 | Gerenciador de pacotes | npm ou pnpm no monorepo? | npm workspaces, para reduzir dependências de ferramenta |
 | Notificações | E-mail ao mudar o status? | Fora desta versão |
-| Hospedagem da API | Qual provedor? | Decidido: Render (API), Vercel (web) e Supabase (banco), em planos gratuitos |
+| Hospedagem da API | Qual provedor? | Decidido: Render (API e PostgreSQL) e Vercel (web), em planos gratuitos |
 | Concorrência em anexos | Tratar conflito de serialização (P2034) com nova tentativa? | Hoje é raro e resulta em erro 500; repetir a transação é a evolução natural |
 | Cadastro aberto | Manter auto-cadastro em produção? | Manter apenas na demonstração; em uso real, só criação por administrador |
 

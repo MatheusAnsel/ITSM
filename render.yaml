@@ -1,5 +1,5 @@
 # Blueprint do Render: API do ITSM em modo demonstração (imagem Docker, plano gratuito).
-# O banco fica no Supabase; o frontend fica na Vercel. Passo a passo em docs/DEPLOY.md.
+# O banco é o PostgreSQL gratuito do Render (DATABASE_URL ligada pelo painel); o frontend fica na Vercel. Passo a passo em docs/DEPLOY.md.
 services:
   - type: web
     name: itsm-api
@@ -21,7 +21,7 @@ services:
         value: "1"
       - key: DATABASE_URL
         sync: false
-      # URL do site na Vercel, por exemplo https://itsm-demo.vercel.app
+      # URL do site na Vercel, por exemplo https://itsm-demo-six.vercel.app
       - key: CORS_ORIGINS
         sync: false
       - key: JWT_ACCESS_SECRET

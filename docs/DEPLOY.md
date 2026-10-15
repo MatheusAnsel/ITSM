@@ -4,30 +4,28 @@ Arquitetura escolhida, toda em planos gratuitos:
 
 | Peça | Serviço | Por quê |
 |---|---|---|
-| Banco PostgreSQL | Supabase | O plano gratuito mantém os dados (o banco gratuito do Render é apagado após 30 dias) |
+| Banco PostgreSQL | Render (plano gratuito) | Fica na mesma rede da API. Atenção: o banco gratuito do Render é apagado 30 dias após a criação (a demonstração atual expira em 14/11/2026) |
 | API (NestJS) | Render, imagem Docker | Roda o `apps/api/Dockerfile`, aplica as migrations e o seed ao iniciar |
 | Frontend (Next.js) | Vercel | Hospedagem nativa do Next; repassa `/api` para a API |
 
 A Vercel repassa as chamadas de `/api` para o Render. Assim o navegador conversa só com o domínio do site e o cookie de refresh (`SameSite=Strict`) continua valendo, sem CORS entre domínios.
 
 ```
-Navegador -> Vercel (site + /api) -> Render (API) -> Supabase (PostgreSQL)
+Navegador -> Vercel (site + /api) -> Render (API) -> Render (PostgreSQL)
 ```
 
-## 1. Supabase (banco)
+## 1. Render (banco)
 
-1. Crie um projeto e guarde a senha do banco.
-2. Em **Connect**, copie a string do **Session pooler** (porta 5432). Ela funciona por IPv4, o que a conexão direta do plano gratuito não faz, e aceita as migrations do Prisma.
-3. Se a senha tiver caracteres especiais, codifique-os na URL (por exemplo `@` vira `%40`). Prefira uma senha só com letras e números.
-
-Formato: `postgresql://postgres.<ref>:<senha>@aws-0-<regiao>.pooler.supabase.com:5432/postgres`
+1. Em **New > PostgreSQL**, crie uma instância no plano gratuito, na mesma região da API.
+2. Ao criar o serviço da API, em `DATABASE_URL` use **Add from Database** para ligar a URL interna do banco.
+3. Para manter a demonstração no ar depois dos 30 dias, crie um novo banco, religue `DATABASE_URL` e reinicie a API (o seed recria os dados). Quem quiser um banco que não expira pode usar o plano gratuito do Supabase com a string do **Session pooler** (porta 5432).
 
 ## 2. Render (API)
 
 1. Em **New > Blueprint**, aponte para este repositório. O arquivo `render.yaml` cria o serviço `itsm-api`.
 2. Preencha as variáveis marcadas como manuais:
-   - `DATABASE_URL`: a string do Supabase.
-   - `CORS_ORIGINS`: a URL do site na Vercel (preencha depois do passo 3; pode ser um valor provisório na primeira vez).
+   - `DATABASE_URL`: a URL do banco (ligada pelo painel do Render).
+   - `CORS_ORIGINS`: a URL do site na Vercel (preencha depois do passo 3; com o repasse de `/api` da Vercel o navegador não faz chamadas entre domínios, então o valor serve só como segurança).
    - `DEMO_PASSWORD`: a senha pública dos usuários de demonstração. Escolha uma e divulgue no README ou na tela de login.
 3. O primeiro deploy aplica as migrations e executa o seed (categorias, políticas de SLA, administrador e 48 chamados de demonstração). O seed é idempotente: reiniciar não duplica nada.
 4. A senha do administrador é gerada pelo Render (`SEED_ADMIN_PASSWORD`) e fica só no painel; não faz parte da demonstração pública.
@@ -58,11 +56,11 @@ O cadastro aberto também fica ligado na demonstração.
 
 - **Hibernação:** a API do Render dorme após cerca de 15 minutos sem acesso e leva em torno de um minuto para acordar. Como a Vercel desiste de repassar a requisição em 30 segundos, a primeira chamada depois de um período parado pode falhar. Um monitor gratuito (por exemplo, UptimeRobot) chamando `/api/health` a cada 5 minutos evita isso.
 - **Anexos:** o disco do Render gratuito não persiste. Anexos enviados somem quando o serviço reinicia; os dados do banco permanecem.
-- **Supabase:** projetos gratuitos ficam pausados depois de cerca de uma semana sem atividade; é preciso reativar no painel.
+- **Banco do Render:** o plano gratuito é apagado 30 dias após a criação; veja a seção 1 para renovar.
 - **IP do visitante:** `TRUST_PROXY=1` considera apenas o balanceador do Render como proxy confiável. Se o log de auditoria mostrar o mesmo IP para todos os visitantes, aumente o valor para 2 e confira de novo.
 
 ## Segurança da demonstração
 
 - `DEMO_MODE=true` é a única forma de o seed de demonstração rodar com `NODE_ENV=production`; fora dessa instância, a API recusa `SEED_DEMO`.
 - A senha de `DEMO_PASSWORD` é pública por definição. Não reutilize uma senha real e não coloque dados reais no banco da demonstração.
-- Para restaurar o estado inicial, apague os dados no Supabase e reinicie a API (o seed recria tudo).
+- Para restaurar o estado inicial, apague os dados do banco e reinicie a API (o seed recria tudo).
