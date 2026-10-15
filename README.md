@@ -8,7 +8,7 @@ Sistema web para registrar, acompanhar e resolver chamados de suporte de TI, con
 
 **Acesse: https://itsm-demo-six.vercel.app**
 
-Não precisa instalar nada. A demonstração já vem com 48 chamados em todos os status, ativos, categorias e políticas de SLA.
+Não precisa instalar nada: a tela de login tem botões "Entrar como Gestor / Atendente / Solicitante" que entram com um clique (a tabela abaixo é para quem preferir digitar). A demonstração já vem com 48 chamados em todos os status, ativos, categorias e políticas de SLA.
 
 | Perfil | E-mail | Senha | O que dá para ver |
 |---|---|---|---|

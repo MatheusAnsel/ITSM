@@ -38,6 +38,7 @@ Confira `https://<sua-api>.onrender.com/api/health`.
 2. Variáveis de ambiente (valem para o build):
    - `NEXT_PUBLIC_API_URL` = `/api`
    - `API_PROXY_TARGET` = `https://<sua-api>.onrender.com`
+   - `NEXT_PUBLIC_DEMO_MODE` = `true` (mostra na tela de login os botões "Entrar como Gestor, Atendente ou Solicitante"; use `NEXT_PUBLIC_DEMO_PASSWORD` se a `DEMO_PASSWORD` da API não for a senha do README)
 3. Faça o deploy e volte ao Render para colocar a URL final da Vercel em `CORS_ORIGINS`.
 
 ## Usuários de demonstração
