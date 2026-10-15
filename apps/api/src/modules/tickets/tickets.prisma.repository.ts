@@ -147,8 +147,13 @@ export class PrismaTicketsRepository extends TicketsRepository {
     comment?: NewComment,
   ): Promise<TicketRecord> {
     const row = await this.prisma.$transaction(async (tx) => {
-      // Trava otimista: só aplica se o status ainda é o que foi lido.
-      const result = await tx.ticket.updateMany({ where: { id, status: expectedStatus }, data });
+      // Trava otimista: só aplica se o status ainda é o que foi lido. O updatedAt explícito evita
+      // que um `data` vazio (nota interna, por exemplo) vire um UPDATE sem efeito, com count 0
+      // e um falso conflito; comentar também conta como atividade no chamado.
+      const result = await tx.ticket.updateMany({
+        where: { id, status: expectedStatus },
+        data: { ...data, updatedAt: new Date() },
+      });
       if (result.count !== 1) {
         throw new ConflictException('O chamado foi alterado por outra pessoa. Recarregue e tente de novo');
       }
