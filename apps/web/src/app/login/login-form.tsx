@@ -78,10 +78,10 @@ export function LoginForm() {
               variant="secondary"
               disabled={loading}
               onClick={() => login(u.email, DEMO_PASSWORD)}
-              className="h-10 w-full justify-between text-[13px]"
+              className="h-auto w-full flex-col gap-0 py-2 text-[13px]"
             >
               <span>Entrar como {u.label}</span>
-              <span className="text-xs text-ink-3">{u.hint}</span>
+              <span className="text-[11px] font-normal text-ink-3">{u.hint}</span>
             </Button>
           ))}
           <p className="text-center text-[11px] text-ink-3">A primeira entrada pode levar cerca de um minuto (servidor gratuito acordando).</p>
