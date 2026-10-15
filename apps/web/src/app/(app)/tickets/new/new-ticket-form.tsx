@@ -63,7 +63,7 @@ export function NewTicketForm() {
         <ArrowLeft size={13} /> Chamados
       </Link>
       <PageHeader title="Novo chamado" subtitle="Descreva o problema com o máximo de detalhe que puder." />
-      <form onSubmit={onSubmit} className="max-w-[640px] space-y-4 rounded-xl border border-line bg-panel/60 p-5" noValidate>
+      <form onSubmit={onSubmit} className="max-w-[640px] space-y-4 rounded-lg border border-line bg-panel p-5" noValidate>
         <Field label="Título" hint="Resuma em uma frase">
           <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={150} required autoFocus />
         </Field>

@@ -47,11 +47,10 @@ export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
 const VARIANT: Record<Variant, string> = {
-  primary:
-    'border-ask/70 bg-ask/10 text-ink shadow-[0_0_18px_-6px_rgba(255,77,109,0.6)] hover:bg-ask/20',
+  primary: 'border-brand bg-brand text-white hover:bg-brand-strong',
   secondary: 'border-line-strong bg-panel text-ink hover:bg-panel-2',
-  danger: 'border-bad/50 bg-bad/10 text-bad hover:bg-bad/20',
-  ghost: 'border-transparent text-ink-2 hover:bg-white/[0.06] hover:text-ink',
+  danger: 'border-bad/40 bg-panel text-bad hover:bg-bad/10',
+  ghost: 'border-transparent text-ink-2 hover:bg-ink/[0.06] hover:text-ink',
 };
 
 export function Button({

@@ -124,9 +124,9 @@ export function TicketsView() {
         actions={
           <Link
             href="/tickets/new"
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-ask/70 bg-ask/10 px-4 text-[13px] font-medium hover:bg-ask/20"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand bg-brand px-4 text-[13px] font-medium text-white hover:bg-brand-strong"
           >
-            <Plus size={14} className="text-ask" /> Novo chamado
+            <Plus size={14} /> Novo chamado
           </Link>
         }
       />

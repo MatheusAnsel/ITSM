@@ -38,9 +38,9 @@ export function Topbar() {
   }
 
   return (
-    <header className="relative z-20 flex h-14 shrink-0 items-center gap-3 border-b border-line px-4">
+    <header className="relative z-20 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-panel px-4">
       <Link href="/" className="flex items-center gap-2.5 pr-2" aria-label="ITSM, página inicial">
-        <span className="grid h-7 w-7 place-items-center rounded-[8px] bg-gradient-to-br from-[#4f8cff] to-[#2f6df6] text-white">
+        <span className="grid h-7 w-7 place-items-center rounded-md bg-brand text-white">
           <Waypoints size={16} strokeWidth={2.4} />
         </span>
         <span className="text-[15px] font-semibold tracking-tight">ITSM</span>
@@ -56,7 +56,7 @@ export function Topbar() {
             onChange={(e) => setTerm(e.target.value)}
             placeholder="Buscar chamados"
             maxLength={100}
-            className="h-9 w-full rounded-lg border border-line bg-panel/80 pl-9 pr-3 text-[13px] text-ink placeholder:text-ink-3 focus:border-line-strong"
+            className="h-9 w-full rounded-md border border-line bg-panel-2 pl-9 pr-3 text-[13px] text-ink placeholder:text-ink-3 focus:border-line-strong"
           />
         </label>
       </form>
@@ -64,9 +64,9 @@ export function Topbar() {
       <div className="ml-auto flex items-center gap-2 sm:ml-0">
         <Link
           href="/tickets/new"
-          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-ask/70 bg-ask/10 px-3.5 text-[12.5px] font-medium text-ink shadow-[0_0_18px_-4px_rgba(255,77,109,0.55)] transition-colors hover:bg-ask/20"
+          className="inline-flex h-8 items-center gap-1.5 rounded-md bg-brand px-3.5 text-[12.5px] font-medium text-white transition-colors hover:bg-brand-strong"
         >
-          <Plus size={14} className="text-ask" />
+          <Plus size={14} />
           <span className="hidden sm:inline">Novo chamado</span>
           <span className="sm:hidden">Novo</span>
         </Link>
@@ -78,12 +78,12 @@ export function Topbar() {
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((o) => !o)}
-            className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[#f59e7a] to-[#c026d3] text-[11px] font-semibold text-white ring-1 ring-white/20"
+            className="grid h-8 w-8 place-items-center rounded-full border border-line-strong bg-panel-2 text-[11px] font-semibold text-ink-2 hover:bg-ink/5"
           >
             {initials(user.name)}
           </button>
           {menuOpen && (
-            <div role="menu" className="absolute right-0 top-10 w-[230px] rounded-xl border border-line-strong bg-window p-1.5 shadow-2xl">
+            <div role="menu" className="absolute right-0 top-10 w-[230px] rounded-lg border border-line bg-panel p-1.5 shadow-lg">
               <div className="border-b border-line px-3 pb-2.5 pt-2">
                 <div className="truncate text-[13px] font-medium">{user.name}</div>
                 <div className="truncate text-xs text-ink-3">{user.email}</div>
@@ -93,7 +93,7 @@ export function Topbar() {
                 role="menuitem"
                 href="/account"
                 onClick={() => setMenuOpen(false)}
-                className="mt-1 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-ink-2 hover:bg-white/[0.06] hover:text-ink"
+                className="mt-1 flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] text-ink-2 hover:bg-ink/[0.06] hover:text-ink"
               >
                 <KeyRound size={14} /> Alterar senha
               </Link>
@@ -101,7 +101,7 @@ export function Topbar() {
                 role="menuitem"
                 type="button"
                 onClick={() => void signOut()}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] text-ink-2 hover:bg-white/[0.06] hover:text-ink"
+                className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] text-ink-2 hover:bg-ink/[0.06] hover:text-ink"
               >
                 <LogOut size={14} /> Sair
               </button>

@@ -5,20 +5,20 @@ import type { AssetStatus, AssetType, Priority, SlaIndicator, TicketStatus } fro
 type Tone = 'blue' | 'violet' | 'green' | 'amber' | 'red' | 'gray';
 
 const TONE: Record<Tone, string> = {
-  blue: 'border-info/50 text-info',
-  violet: 'border-violet/50 text-violet',
-  green: 'border-ok/50 text-ok',
-  amber: 'border-warn/50 text-warn',
-  red: 'border-bad/50 text-bad',
-  gray: 'border-line-strong text-ink-2',
+  blue: 'border-info/20 bg-info/10 text-info',
+  violet: 'border-line-strong bg-panel-2 text-ink-2',
+  green: 'border-ok/20 bg-ok/10 text-ok',
+  amber: 'border-warn/25 bg-warn/10 text-warn',
+  red: 'border-bad/20 bg-bad/10 text-bad',
+  gray: 'border-line bg-panel-2 text-ink-2',
 };
 
-// Selo no estilo da referência: caixa alta, contorno fino e texto pequeno.
+// Selo de estado: fundo suave na cor do estado, texto legível e sem caixa alta.
 export function Badge({ tone = 'gray', children }: { tone?: Tone; children: React.ReactNode }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-[5px] border bg-white/[0.02] px-1.5 py-[3px] text-[10px] font-semibold uppercase leading-none tracking-[0.06em] whitespace-nowrap',
+        'inline-flex items-center rounded-md border px-2 py-[3px] text-[11.5px] font-medium leading-none whitespace-nowrap',
         TONE[tone],
       )}
     >
@@ -34,7 +34,7 @@ export const PriorityBadge = ({ value }: { value: Priority }) => (
 
 const STATUS_TONE: Record<TicketStatus, Tone> = {
   OPEN: 'blue',
-  IN_PROGRESS: 'violet',
+  IN_PROGRESS: 'blue',
   WAITING_USER: 'amber',
   RESOLVED: 'green',
   CLOSED: 'gray',

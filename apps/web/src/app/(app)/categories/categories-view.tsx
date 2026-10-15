@@ -85,7 +85,7 @@ export function CategoriesView() {
       ) : !categories.data ? (
         <Loading />
       ) : (
-        <ul className="overflow-hidden rounded-xl border border-line bg-panel/60">
+        <ul className="overflow-hidden rounded-lg border border-line bg-panel">
           {categories.data.map((c) => (
             <li key={c.id} className="flex items-center gap-3 border-b border-line/70 px-4 py-3 last:border-0">
               <CategoryTile category={c.name} />

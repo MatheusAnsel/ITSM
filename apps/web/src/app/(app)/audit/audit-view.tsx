@@ -17,7 +17,7 @@ const ENTITIES = ['Ticket', 'User', 'Asset', 'Category', 'SlaPolicy', 'Attachmen
 const columns: Column<AuditEntry>[] = [
   { key: 'when', header: 'Quando', width: '150px', render: (a) => <span className="text-ink-2">{formatDateTime(a.createdAt)}</span> },
   { key: 'actor', header: 'Autor', width: '160px', render: (a) => <span className="text-ink">{a.actor?.name ?? 'Anônimo'}</span> },
-  { key: 'action', header: 'Ação', render: (a) => <code className="rounded bg-white/[0.06] px-1.5 py-0.5 text-xs text-ink-2">{a.action}</code> },
+  { key: 'action', header: 'Ação', render: (a) => <code className="rounded bg-ink/[0.06] px-1.5 py-0.5 text-xs text-ink-2">{a.action}</code> },
   { key: 'entity', header: 'Entidade', width: '130px', render: (a) => <span className="text-ink-2">{a.entity}</span> },
   {
     key: 'meta',

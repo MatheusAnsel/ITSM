@@ -4,17 +4,17 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContaine
 import { PRIORITY_LABEL } from '@/lib/labels';
 import { PRIORITIES, type DashboardSummary, type VolumeStat } from '@/lib/types';
 
-const AXIS = { fill: '#6e6e79', fontSize: 11 };
+const AXIS = { fill: '#667085', fontSize: 11 };
 const TOOLTIP = {
-  contentStyle: { background: '#15151a', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 10, fontSize: 12, color: '#ececef' },
-  labelStyle: { color: '#a3a3ad' },
-  cursor: { stroke: 'rgba(255,255,255,0.12)' },
+  contentStyle: { background: '#ffffff', border: '1px solid #e4e7ec', borderRadius: 8, fontSize: 12, color: '#172033', boxShadow: '0 1px 3px rgba(16,24,40,0.1)' },
+  labelStyle: { color: '#475467' },
+  cursor: { stroke: '#cdd2da' },
 };
-const PRIORITY_COLOR = { LOW: '#6e6e79', MEDIUM: '#5b9dff', HIGH: '#f5b82e', CRITICAL: '#ff5d6c' } as const;
+const PRIORITY_COLOR = { LOW: '#98a2b3', MEDIUM: '#1d4ed8', HIGH: '#b45309', CRITICAL: '#b42318' } as const;
 
 export function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-line bg-panel/60 p-4">
+    <section className="rounded-lg border border-line bg-panel p-4">
       <h2 className="mb-3 text-[13px] font-medium text-ink-2">{title}</h2>
       {children}
     </section>
@@ -37,22 +37,12 @@ export function Charts({ volume, byPriority, loading }: { volume: VolumeStat[]; 
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={volume} margin={{ top: 4, right: 8, left: -22, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gOpen" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#5b9dff" stopOpacity={0.45} />
-                    <stop offset="100%" stopColor="#5b9dff" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gDone" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#a78bfa" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#a78bfa" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                <CartesianGrid stroke="#e4e7ec" vertical={false} />
                 <XAxis dataKey="day" tickFormatter={shortDay} tick={AXIS} tickLine={false} axisLine={false} interval={4} />
                 <YAxis tick={AXIS} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip {...TOOLTIP} labelFormatter={(l) => shortDay(String(l))} />
-                <Area type="monotone" dataKey="created" name="Abertos" stroke="#5b9dff" strokeWidth={2} fill="url(#gOpen)" />
-                <Area type="monotone" dataKey="resolved" name="Resolvidos" stroke="#a78bfa" strokeWidth={2} fill="url(#gDone)" />
+                <Area type="monotone" dataKey="created" name="Abertos" stroke="#1d4ed8" strokeWidth={2} fill="#1d4ed8" fillOpacity={0.08} />
+                <Area type="monotone" dataKey="resolved" name="Resolvidos" stroke="#15803d" strokeWidth={2} fill="#15803d" fillOpacity={0.06} />
               </AreaChart>
             </ResponsiveContainer>
           )}
@@ -64,8 +54,8 @@ export function Charts({ volume, byPriority, loading }: { volume: VolumeStat[]; 
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={priorityData} layout="vertical" margin={{ top: 4, right: 12, left: 4, bottom: 0 }}>
               <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" tick={{ ...AXIS, fill: '#a3a3ad', fontSize: 12 }} tickLine={false} axisLine={false} width={56} />
-              <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+              <YAxis type="category" dataKey="name" tick={{ ...AXIS, fill: '#475467', fontSize: 12 }} tickLine={false} axisLine={false} width={56} />
+              <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(16,24,40,0.04)' }} />
               <Bar dataKey="total" name="Chamados" radius={[0, 6, 6, 0]} barSize={18}>
                 {priorityData.map((p) => (
                   <Cell key={p.name} fill={p.color} />

@@ -12,7 +12,7 @@ export function Loading({ label = 'Carregando...' }: { label?: string }) {
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div role="alert" className="flex flex-col items-center gap-3 rounded-xl border border-bad/30 bg-bad/5 px-6 py-10 text-center">
+    <div role="alert" className="flex flex-col items-center gap-3 rounded-lg border border-bad/30 bg-bad/5 px-6 py-10 text-center">
       <AlertTriangle size={20} className="text-bad" aria-hidden />
       <p className="text-[13px] text-ink-2">{message}</p>
       {onRetry && (

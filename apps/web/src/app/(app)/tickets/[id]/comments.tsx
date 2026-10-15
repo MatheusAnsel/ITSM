@@ -50,10 +50,10 @@ export function Comments({
           {items.map((c) => (
             <li
               key={c.id}
-              className={`rounded-xl border p-3.5 ${c.internal ? 'border-warn/30 bg-warn/[0.04]' : 'border-line bg-panel/60'}`}
+              className={`rounded-lg border p-3.5 ${c.internal ? 'border-warn/30 bg-warn/[0.04]' : 'border-line bg-panel'}`}
             >
               <div className="mb-1.5 flex items-center gap-2.5">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-white/[0.08] text-[10px] font-semibold text-ink-2" aria-hidden>
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-ink/[0.08] text-[10px] font-semibold text-ink-2" aria-hidden>
                   {initials(c.author.name)}
                 </span>
                 <span className="text-[13px] font-medium">{c.author.name}</span>

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Gestão de chamados e ativos de TI',
 };
 
-export const viewport: Viewport = { themeColor: '#08080b', colorScheme: 'dark' };
+export const viewport: Viewport = { themeColor: '#ffffff', colorScheme: 'light' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

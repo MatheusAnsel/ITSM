@@ -66,7 +66,7 @@ export function AssetDetail() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <dl className="h-fit divide-y divide-line rounded-xl border border-line bg-panel/60 px-4 py-1">
+        <dl className="h-fit divide-y divide-line rounded-lg border border-line bg-panel px-4 py-1">
           <Row label="Responsável">{a.assignedTo?.name ?? 'Sem responsável'}</Row>
           <Row label="Número de série">{a.serialNumber ?? '—'}</Row>
           <Row label="Data de compra">{a.purchaseDate ? formatDate(a.purchaseDate) : '—'}</Row>
@@ -84,7 +84,7 @@ export function AssetDetail() {
                 <li key={t.id}>
                   <Link
                     href={`/tickets/${t.id}`}
-                    className="flex items-center gap-3 rounded-lg border border-line bg-panel/60 px-3 py-2.5 hover:border-line-strong"
+                    className="flex items-center gap-3 rounded-lg border border-line bg-panel px-3 py-2.5 hover:border-line-strong"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[13px] text-ink">{t.title}</div>

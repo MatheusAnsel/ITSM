@@ -10,7 +10,7 @@ import { Rankings } from './rankings';
 
 function Kpi({ label, value, hint, tone }: { label: string; value: string; hint: string; tone: string }) {
   return (
-    <div className="rounded-xl border border-line bg-panel/60 p-4">
+    <div className="rounded-lg border border-line bg-panel p-4">
       <div className="text-xs text-ink-2">{label}</div>
       <div className={`mt-2 text-[28px] font-semibold leading-none tracking-tight ${tone}`}>{value}</div>
       <div className="mt-2 text-xs text-ink-3">{hint}</div>
@@ -39,7 +39,7 @@ export function DashboardView() {
       />
       <section aria-label="Indicadores" className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi label="Em aberto" value={String(open)} hint={`${s.byStatus.OPEN} novos · ${s.byStatus.WAITING_USER} aguardando usuário`} tone="text-info" />
-        <Kpi label="Em atendimento" value={String(s.byStatus.IN_PROGRESS)} hint={`${s.byStatus.RESOLVED} resolvidos no período`} tone="text-violet" />
+        <Kpi label="Em atendimento" value={String(s.byStatus.IN_PROGRESS)} hint={`${s.byStatus.RESOLVED} resolvidos no período`} tone="text-ink" />
         <Kpi label="SLA de resolução" value={pct(s.sla.resolutionCompliancePercent)} hint={`${s.sla.resolvedInPeriod} resolvidos · resposta ${pct(s.sla.responseCompliancePercent)}`} tone="text-ok" />
         <Kpi label="Violados agora" value={String(s.sla.openBreached)} hint="chamados em aberto fora do prazo" tone={s.sla.openBreached > 0 ? 'text-bad' : 'text-ink'} />
       </section>

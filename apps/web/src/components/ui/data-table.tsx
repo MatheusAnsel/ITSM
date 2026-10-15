@@ -21,7 +21,7 @@ export function DataTable<T>({
   empty?: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-line bg-panel/60">
+    <div className="overflow-hidden rounded-lg border border-line bg-panel">
       <div className="scroll-thin overflow-x-auto">
         <table className="w-full min-w-[720px] border-collapse text-left text-[13px]">
           <thead>
@@ -47,7 +47,7 @@ export function DataTable<T>({
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={rowKey(row)} className="border-b border-line/70 last:border-0 transition-colors hover:bg-white/[0.03]">
+                <tr key={rowKey(row)} className="border-b border-line/70 last:border-0 transition-colors hover:bg-ink/[0.03]">
                   {columns.map((c) => (
                     <td key={c.key} className={cn('px-4 py-3.5 align-middle', c.align === 'right' && 'text-right')}>
                       {c.render(row)}

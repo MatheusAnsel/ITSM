@@ -34,7 +34,7 @@ export function Dialog({
       aria-labelledby={titleId}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className={`m-auto w-[calc(100%-2rem)] ${wide ? 'max-w-[560px]' : 'max-w-[440px]'} rounded-2xl border border-line-strong bg-window p-0 text-ink backdrop:bg-black/60 backdrop:backdrop-blur-sm`}
+      className={`m-auto w-[calc(100%-2rem)] ${wide ? 'max-w-[560px]' : 'max-w-[440px]'} rounded-lg border border-line bg-panel p-0 text-ink shadow-xl backdrop:bg-slate-900/40`}
     >
       {open && (
         <div className="p-5">
@@ -46,7 +46,7 @@ export function Dialog({
               type="button"
               aria-label="Fechar"
               onClick={onClose}
-              className="grid h-7 w-7 place-items-center rounded-lg text-ink-2 hover:bg-white/[0.06] hover:text-ink"
+              className="grid h-7 w-7 place-items-center rounded-lg text-ink-2 hover:bg-ink/[0.06] hover:text-ink"
             >
               <X size={15} />
             </button>

@@ -31,7 +31,7 @@ export function Sidebar({ role }: { role: Role }) {
   const items = NAV_ITEMS.filter((i) => i.roles.includes(role));
   return (
     <>
-      <nav aria-label="Principal" className="hidden w-[188px] shrink-0 border-r border-line p-3 md:block">
+      <nav aria-label="Principal" className="hidden w-[208px] shrink-0 border-r border-line bg-panel p-3 md:block">
         <ul className="flex flex-col gap-0.5">
           {items.map(({ label, href, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
@@ -41,8 +41,8 @@ export function Sidebar({ role }: { role: Role }) {
                   href={href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] transition-colors',
-                    active ? 'bg-white/[0.07] text-ink' : 'text-ink-2 hover:bg-white/[0.04] hover:text-ink',
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-[13.5px] transition-colors',
+                    active ? 'bg-brand/10 font-medium text-brand' : 'text-ink-2 hover:bg-ink/5 hover:text-ink',
                   )}
                 >
                   <Icon size={16} strokeWidth={1.8} />
@@ -54,7 +54,7 @@ export function Sidebar({ role }: { role: Role }) {
         </ul>
       </nav>
       {/* Em telas estreitas a navegação vira uma faixa horizontal no topo do conteúdo. */}
-      <nav aria-label="Principal (compacto)" className="absolute inset-x-0 top-14 z-10 flex gap-1 overflow-x-auto border-b border-line bg-window/95 px-3 py-2 md:hidden">
+      <nav aria-label="Principal (compacto)" className="absolute inset-x-0 top-14 z-10 flex gap-1 overflow-x-auto border-b border-line bg-panel px-3 py-2 md:hidden">
         {items.map(({ label, href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
@@ -63,8 +63,8 @@ export function Sidebar({ role }: { role: Role }) {
               href={href}
               aria-current={active ? 'page' : undefined}
               className={cn(
-                'flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5 text-[13px]',
-                active ? 'bg-white/[0.07] text-ink' : 'text-ink-2',
+                'flex shrink-0 items-center gap-2 rounded-md px-3 py-1.5 text-[13px]',
+                active ? 'bg-brand/10 font-medium text-brand' : 'text-ink-2',
               )}
             >
               <Icon size={15} strokeWidth={1.8} />

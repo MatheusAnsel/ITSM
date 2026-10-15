@@ -55,7 +55,7 @@ export function Attachments({ ticketId, canUpload }: { ticketId: string; canUplo
       {list.data && list.data.length === 0 && <p className="text-[13px] text-ink-3">Nenhum anexo.</p>}
       <ul className="space-y-1.5">
         {list.data?.map((a, i) => (
-          <li key={a.id} className="flex items-center gap-3 rounded-lg border border-line bg-panel/60 px-3 py-2">
+          <li key={a.id} className="flex items-center gap-3 rounded-lg border border-line bg-panel px-3 py-2">
             {a.mimeType.startsWith('image/') ? (
               <ImageIcon size={15} className="shrink-0 text-ink-3" aria-hidden />
             ) : (

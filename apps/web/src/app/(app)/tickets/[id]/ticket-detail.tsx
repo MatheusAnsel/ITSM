@@ -161,7 +161,7 @@ export function TicketDetail() {
 
         <aside className="space-y-5">
           {t.allowedTransitions.length > 0 && (
-            <div className="space-y-2 rounded-xl border border-line bg-panel/60 p-4">
+            <div className="space-y-2 rounded-lg border border-line bg-panel p-4">
               <h2 className="text-[13px] font-medium text-ink-2">Ações</h2>
               <div className="flex flex-col gap-1.5">
                 {t.allowedTransitions.map((to) => (
@@ -180,7 +180,7 @@ export function TicketDetail() {
           )}
           {t.allowedTransitions.length === 0 && actionError && <FormError message={actionError} />}
 
-          <dl className="divide-y divide-line rounded-xl border border-line bg-panel/60 px-4 py-2">
+          <dl className="divide-y divide-line rounded-lg border border-line bg-panel px-4 py-2">
             <Row label="Solicitante">{t.requester.name}</Row>
             <Row label="Categoria">
               {staff && !terminal && categories.data ? (
@@ -256,7 +256,7 @@ export function TicketDetail() {
             )}
           </dl>
 
-          <dl className="divide-y divide-line rounded-xl border border-line bg-panel/60 px-4 py-2">
+          <dl className="divide-y divide-line rounded-lg border border-line bg-panel px-4 py-2">
             <Row label="Aberto em">{formatDateTime(t.createdAt)}</Row>
             <Row label="1ª resposta até">
               {t.firstRespondedAt ? `Feita ${formatDateTime(t.firstRespondedAt)}` : formatDateTime(t.responseDueAt)}

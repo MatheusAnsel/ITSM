@@ -37,7 +37,7 @@ export default function AccountPage() {
   return (
     <>
       <PageHeader title="Minha conta" subtitle={`${user.name} · ${user.email} · ${ROLE_LABEL[user.role]}`} />
-      <form onSubmit={onSubmit} className="max-w-[420px] space-y-3.5 rounded-xl border border-line bg-panel/60 p-5" noValidate>
+      <form onSubmit={onSubmit} className="max-w-[420px] space-y-3.5 rounded-lg border border-line bg-panel p-5" noValidate>
         <h2 className="text-[14px] font-medium">Alterar senha</h2>
         <Field label="Senha atual">
           <Input type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />

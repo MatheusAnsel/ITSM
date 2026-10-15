@@ -72,7 +72,7 @@ export function SlaView() {
       ) : !policies.data ? (
         <Loading />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-line bg-panel/60">
+        <div className="overflow-hidden rounded-lg border border-line bg-panel">
           <table className="w-full text-left text-[13px]">
             <thead>
               <tr className="border-b border-line text-xs text-ink-2">
