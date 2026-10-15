@@ -43,6 +43,10 @@ jobs:
       - run: npm run test
       # Testes de integração: AppModule inteiro contra o PostgreSQL real do serviço acima.
       - run: npm run db:deploy
+      # As políticas de SLA e as categorias vêm do seed, não das migrations; o e2e depende delas.
+      - run: npm run db:seed
+        env:
+          SEED_ADMIN_PASSWORD: ci-only-seed-password-2026
       - run: npm run test:e2e -w apps/api
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=high
