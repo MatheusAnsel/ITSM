@@ -1,6 +1,5 @@
 'use client';
 
-import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -121,14 +120,6 @@ export function TicketsView() {
       <PageHeader
         title={staff ? 'Chamados' : 'Meus chamados'}
         subtitle={tickets.data ? `${total} ${total === 1 ? 'chamado' : 'chamados'}` : undefined}
-        actions={
-          <Link
-            href="/tickets/new"
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand bg-brand px-4 text-[13px] font-medium text-white hover:bg-brand-strong"
-          >
-            <Plus size={14} /> Novo chamado
-          </Link>
-        }
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
