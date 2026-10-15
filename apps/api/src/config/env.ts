@@ -30,6 +30,11 @@ export const envSchema = z.object({
   MAX_UPLOAD_MB: z.coerce.number().positive().default(5),
   // Intervalo do fechamento automático (RN-07); 0 desliga.
   AUTO_CLOSE_INTERVAL_MINUTES: z.coerce.number().int().min(0).default(15),
+  // Quantos proxies confiáveis existem na frente da API (por exemplo, o balanceador do Render).
+  // 0 = nenhum. Sem isso, atrás de um proxy o limite de tentativas e a auditoria veem o IP do proxy.
+  TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(0),
+  // Instância pública de demonstração: permite o seed de demonstração mesmo com NODE_ENV=production.
+  DEMO_MODE: booleanFromString('false'),
 });
 
 export type Env = z.infer<typeof envSchema>;

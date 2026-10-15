@@ -589,7 +589,7 @@ Sempre criados (idempotentes, sem sobrescrever o que já existe):
 - O usuário técnico `Sistema`, inativo e com senha aleatória descartada, usado como autor das ações automáticas.
 - Um administrador, com e-mail em `SEED_ADMIN_EMAIL` (padrão `admin@itsm.local`) e senha em `SEED_ADMIN_PASSWORD`, validada pelas mesmas regras de senha da API; nenhuma credencial fixa no repositório.
 
-Somente com `SEED_DEMO=true` (recusado com `NODE_ENV=production`): oito pessoas de demonstração (gestor, atendentes e solicitantes), com a mesma senha do administrador, dez ativos e 48 chamados gerados de forma determinística, com status, histórico, comentários e SLA coerentes entre si. Os chamados só são criados se a tabela estiver vazia, então rodar o seed de novo não duplica nada.
+Somente com `SEED_DEMO=true` (recusado com `NODE_ENV=production`, salvo na instância pública de demonstração, com `DEMO_MODE=true`): oito pessoas de demonstração (gestor, atendentes e solicitantes), com a senha `DEMO_PASSWORD` (na falta dela, a do administrador), dez ativos e 48 chamados gerados de forma determinística, com status, histórico, comentários e SLA coerentes entre si. Os chamados só são criados se a tabela estiver vazia, então rodar o seed de novo não duplica nada.
 
 ## 11. API REST
 
@@ -720,7 +720,9 @@ Comandos: `npm test` (unitários), `npm run test:e2e` (exige `DATABASE_URL` apon
 
 **Verificado:** os repositórios Prisma e a API inteira foram exercitados contra um PostgreSQL 16 real, e o fluxo do frontend (login, abertura de chamado, comentário interno, anexo, mudança de status, painel, ativos, usuários, auditoria) foi percorrido em um navegador real sem erros de console nem de rede.
 
-**Não verificado no ambiente de desenvolvimento:** a construção das imagens Docker (o ambiente não alcançava o Docker Hub) e a execução do pipeline no GitHub Actions. O job `docker` do CI constrói as duas imagens a cada push justamente para cobrir isso.
+**Verificado no GitHub Actions:** os jobs `api` (tipos, lint, testes unitários, migrations, seed, 27 testes e2e contra PostgreSQL 16 e build), `web` e `docker` (build das duas imagens) passam na `main`.
+
+**Ainda não verificado:** a publicação em si (Supabase, Render e Vercel), que depende de criar as contas.
 
 ## 15. Infraestrutura e CI
 
@@ -728,7 +730,7 @@ Comandos: `npm test` (unitários), `npm run test:e2e` (exige `DATABASE_URL` apon
 - **Dockerfiles:** multi-stage (dependências, build, imagem final enxuta), usuário não-root e `HEALTHCHECK`. A API aplica `prisma migrate deploy` ao iniciar e, com `SEED_ON_START=true`, executa o seed. O web usa `output: 'standalone'`.
 - **GitHub Actions:** jobs `api` (tipos, lint, testes unitários, migrations e testes e2e contra um serviço PostgreSQL, build), `web` (tipos, lint, build) e `docker` (build das duas imagens), além de `npm audit` em nível alto.
 - **Migrations:** versionadas no repositório e aplicadas com `prisma migrate deploy`.
-- **Deploy alvo:** frontend na Vercel e API com banco gerenciado em um provedor de container (a definir). Para o cookie de refresh funcionar, web e API devem compartilhar o domínio pai (o cookie é `SameSite=Strict`), ou a API ficar atrás de um proxy reverso no mesmo domínio.
+- **Hospedagem (modo demonstração):** frontend na Vercel, API no Render (imagem Docker, `render.yaml`) e PostgreSQL no Supabase. A Vercel repassa `/api` para o Render (`API_PROXY_TARGET`), então o navegador fala só com um domínio e o cookie de refresh (`SameSite=Strict`) continua válido. Passo a passo, limitações do plano gratuito e usuários de demonstração em [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## 16. Variáveis de ambiente
 
@@ -748,7 +750,7 @@ Comandos: `npm test` (unitários), `npm run test:e2e` (exige `DATABASE_URL` apon
 | `SEED_ADMIN_PASSWORD` | Senha dos usuários do seed (só desenvolvimento) | definir localmente |
 | `NEXT_PUBLIC_API_URL` | URL da API usada pelo frontend | `http://localhost:3001/api` |
 
-O arquivo `.env.example` lista todas essas variáveis (sem valores reais), além de `AUTO_CLOSE_INTERVAL_MINUTES` (padrão `15`; `0` desliga), `RATE_LIMIT_ENABLED` (padrão `true`; só deve ser `false` em testes automatizados, e a API recusa isso em produção), `SEED_ON_START`, `SEED_ADMIN_EMAIL`, `SEED_DEMO` e as variáveis do banco no Docker Compose (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`; use só letras e números na senha, pois ela entra na `DATABASE_URL`).
+O arquivo `.env.example` lista todas essas variáveis (sem valores reais), além de `AUTO_CLOSE_INTERVAL_MINUTES` (padrão `15`; `0` desliga), `RATE_LIMIT_ENABLED` (padrão `true`; só deve ser `false` em testes automatizados, e a API recusa isso em produção), `SEED_ON_START`, `SEED_ADMIN_EMAIL`, `SEED_DEMO`, `DEMO_MODE` e `DEMO_PASSWORD` (instância de demonstração), `TRUST_PROXY` (número de proxies confiáveis na frente da API; `0` por padrão), `API_PROXY_TARGET` (só no build do frontend hospedado) e as variáveis do banco no Docker Compose (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`; use só letras e números na senha, pois ela entra na `DATABASE_URL`).
 
 ## 17. Roadmap de implementação
 
@@ -762,7 +764,7 @@ O arquivo `.env.example` lista todas essas variáveis (sem valores reais), além
 | 5 | Dashboard e auditoria | Concluída |
 | 6 | Frontend com todas as telas da seção 12 | Concluída |
 | 7 | Endurecimento: e2e contra PostgreSQL, cabeçalhos de segurança, Swagger, Dockerfiles | Concluída |
-| 8 | Publicação em um provedor e demonstração online | Pendente (depende de escolher a hospedagem) |
+| 8 | Publicação e demonstração online | Preparada: blueprint do Render, repasse de `/api` na Vercel e `DEMO_MODE` implementados; falta criar as contas e publicar ([docs/DEPLOY.md](docs/DEPLOY.md)) |
 
 ## 18. Como rodar
 
@@ -801,7 +803,7 @@ npm run dev:web               # http://localhost:3000
 | Anexos em produção | Disco local ou storage S3-compatível? | Interface de armazenamento abstrata; escolher ao publicar |
 | Gerenciador de pacotes | npm ou pnpm no monorepo? | npm workspaces, para reduzir dependências de ferramenta |
 | Notificações | E-mail ao mudar o status? | Fora desta versão |
-| Hospedagem da API | Qual provedor? | A definir na fase 8 |
+| Hospedagem da API | Qual provedor? | Decidido: Render (API), Vercel (web) e Supabase (banco), em planos gratuitos |
 | Concorrência em anexos | Tratar conflito de serialização (P2034) com nova tentativa? | Hoje é raro e resulta em erro 500; repetir a transação é a evolução natural |
 | Cadastro aberto | Manter auto-cadastro em produção? | Manter apenas na demonstração; em uso real, só criação por administrador |
 

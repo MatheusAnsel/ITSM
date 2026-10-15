@@ -1,5 +1,10 @@
 import { fileURLToPath } from 'node:url';
 
+// Na hospedagem (Vercel), o navegador fala só com o domínio do site e o Next repassa /api para a API.
+// Assim o cookie de refresh (SameSite=Strict) é do mesmo site e a CORS deixa de ser necessária.
+// Defina NEXT_PUBLIC_API_URL=/api e API_PROXY_TARGET=https://sua-api.onrender.com no build.
+const apiProxyTarget = process.env.API_PROXY_TARGET?.replace(/\/+$/, '');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -8,6 +13,9 @@ const nextConfig = {
   output: 'standalone',
   // Em monorepo, o rastreamento de dependências precisa partir da raiz do repositório.
   outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
+  async rewrites() {
+    return apiProxyTarget ? [{ source: '/api/:path*', destination: `${apiProxyTarget}/api/:path*` }] : [];
+  },
   async headers() {
     return [
       {

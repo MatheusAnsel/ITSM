@@ -15,6 +15,16 @@ describe('validateEnv', () => {
     expect(env.CORS_ORIGINS).toEqual(['http://localhost:3000', 'http://localhost:3002']);
   });
 
+  it('TRUST_PROXY e DEMO_MODE vêm desligados por padrão e aceitam valores explícitos', () => {
+    const padrao = validateEnv(base);
+    expect(padrao.TRUST_PROXY).toBe(0);
+    expect(padrao.DEMO_MODE).toBe(false);
+    const ligado = validateEnv({ ...base, TRUST_PROXY: '1', DEMO_MODE: 'true' });
+    expect(ligado.TRUST_PROXY).toBe(1);
+    expect(ligado.DEMO_MODE).toBe(true);
+    expect(() => validateEnv({ ...base, TRUST_PROXY: '-1' })).toThrow(/TRUST_PROXY/);
+  });
+
   it('rejeita segredo JWT curto', () => {
     expect(() => validateEnv({ ...base, JWT_ACCESS_SECRET: 'curto' })).toThrow(/JWT_ACCESS_SECRET/);
   });

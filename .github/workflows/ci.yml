@@ -47,15 +47,7 @@ jobs:
       - run: npm run db:seed
         env:
           SEED_ADMIN_PASSWORD: ci-only-seed-password-2026
-      - name: e2e
-        run: |
-          set -o pipefail
-          npm run test:e2e -w apps/api 2>&1 | tee /tmp/e2e.log
-      - name: Resumo da falha do e2e (diagnostico)
-        if: failure()
-        run: |
-          body=$(grep -vE '^\s+at ' /tmp/e2e.log | head -90 | cut -c1-240 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
-          echo "::error title=e2e::${body}"
+      - run: npm run test:e2e -w apps/api
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=high
 

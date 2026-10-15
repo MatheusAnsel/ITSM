@@ -10,6 +10,12 @@ import type { Env } from './config/env';
 // Configuração compartilhada entre a API real (main.ts) e os testes e2e, para que os testes
 // exercitem exatamente o mesmo prefixo, cabeçalhos de segurança, validação e formato de erro.
 export function configureApp(app: INestApplication, env: Env): void {
+  if (env.TRUST_PROXY > 0) {
+    (app.getHttpAdapter().getInstance() as { set(name: string, value: unknown): void }).set(
+      'trust proxy',
+      env.TRUST_PROXY,
+    );
+  }
   app.setGlobalPrefix('api');
   app.use(requestIdMiddleware);
   app.use(helmet());

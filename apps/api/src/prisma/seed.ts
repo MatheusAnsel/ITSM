@@ -61,9 +61,14 @@ async function seedAdmin(): Promise<void> {
   console.log(`Administrador ${email} criado.`);
 }
 
-// Dados de demonstração para desenvolvimento. Nunca roda em produção.
+// Dados de demonstração. Em produção só roda numa instância pública de demonstração (DEMO_MODE=true).
+// A senha dos usuários de demonstração (DEMO_PASSWORD) é separada da do administrador, que continua secreta.
 async function seedDemo(): Promise<void> {
-  const password = process.env.SEED_ADMIN_PASSWORD ?? '';
+  const password = process.env.DEMO_PASSWORD ?? process.env.SEED_ADMIN_PASSWORD ?? '';
+  const errors = validatePassword(password);
+  if (errors.length > 0) {
+    throw new Error(`DEMO_PASSWORD (ou SEED_ADMIN_PASSWORD) inválida: ${errors.join('; ')}`);
+  }
   const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
   const people = [
     ['gestor', 'Gestor Demo', 'gestor@itsm.local', 'MANAGER'],
@@ -163,8 +168,8 @@ async function main(): Promise<void> {
   await seedBase();
   await seedAdmin();
   if (process.env.SEED_DEMO === 'true') {
-    if (process.env.NODE_ENV === 'production')
-      throw new Error('SEED_DEMO não pode ser usado em produção.');
+    if (process.env.NODE_ENV === 'production' && process.env.DEMO_MODE !== 'true')
+      throw new Error('SEED_DEMO em produção só é permitido com DEMO_MODE=true (instância de demonstração).');
     await seedDemo();
   }
 }

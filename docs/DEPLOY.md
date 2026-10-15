@@ -1,0 +1,68 @@
+# Publicação em modo demonstração
+
+Arquitetura escolhida, toda em planos gratuitos:
+
+| Peça | Serviço | Por quê |
+|---|---|---|
+| Banco PostgreSQL | Supabase | O plano gratuito mantém os dados (o banco gratuito do Render é apagado após 30 dias) |
+| API (NestJS) | Render, imagem Docker | Roda o `apps/api/Dockerfile`, aplica as migrations e o seed ao iniciar |
+| Frontend (Next.js) | Vercel | Hospedagem nativa do Next; repassa `/api` para a API |
+
+A Vercel repassa as chamadas de `/api` para o Render. Assim o navegador conversa só com o domínio do site e o cookie de refresh (`SameSite=Strict`) continua valendo, sem CORS entre domínios.
+
+```
+Navegador -> Vercel (site + /api) -> Render (API) -> Supabase (PostgreSQL)
+```
+
+## 1. Supabase (banco)
+
+1. Crie um projeto e guarde a senha do banco.
+2. Em **Connect**, copie a string do **Session pooler** (porta 5432). Ela funciona por IPv4, o que a conexão direta do plano gratuito não faz, e aceita as migrations do Prisma.
+3. Se a senha tiver caracteres especiais, codifique-os na URL (por exemplo `@` vira `%40`). Prefira uma senha só com letras e números.
+
+Formato: `postgresql://postgres.<ref>:<senha>@aws-0-<regiao>.pooler.supabase.com:5432/postgres`
+
+## 2. Render (API)
+
+1. Em **New > Blueprint**, aponte para este repositório. O arquivo `render.yaml` cria o serviço `itsm-api`.
+2. Preencha as variáveis marcadas como manuais:
+   - `DATABASE_URL`: a string do Supabase.
+   - `CORS_ORIGINS`: a URL do site na Vercel (preencha depois do passo 3; pode ser um valor provisório na primeira vez).
+   - `DEMO_PASSWORD`: a senha pública dos usuários de demonstração. Escolha uma e divulgue no README ou na tela de login.
+3. O primeiro deploy aplica as migrations e executa o seed (categorias, políticas de SLA, administrador e 48 chamados de demonstração). O seed é idempotente: reiniciar não duplica nada.
+4. A senha do administrador é gerada pelo Render (`SEED_ADMIN_PASSWORD`) e fica só no painel; não faz parte da demonstração pública.
+
+Confira `https://<sua-api>.onrender.com/api/health`.
+
+## 3. Vercel (frontend)
+
+1. Importe o repositório e defina **Root Directory** como `apps/web`.
+2. Variáveis de ambiente (valem para o build):
+   - `NEXT_PUBLIC_API_URL` = `/api`
+   - `API_PROXY_TARGET` = `https://<sua-api>.onrender.com`
+3. Faça o deploy e volte ao Render para colocar a URL final da Vercel em `CORS_ORIGINS`.
+
+## Usuários de demonstração
+
+Todos usam `DEMO_PASSWORD`.
+
+| Perfil | E-mail |
+|---|---|
+| Gestor | `gestor@itsm.local` |
+| Atendente | `atendente@itsm.local` |
+| Solicitante | `solicitante@itsm.local` |
+
+O cadastro aberto também fica ligado na demonstração.
+
+## Limitações do plano gratuito
+
+- **Hibernação:** a API do Render dorme após cerca de 15 minutos sem acesso e leva em torno de um minuto para acordar. Como a Vercel desiste de repassar a requisição em 30 segundos, a primeira chamada depois de um período parado pode falhar. Um monitor gratuito (por exemplo, UptimeRobot) chamando `/api/health` a cada 5 minutos evita isso.
+- **Anexos:** o disco do Render gratuito não persiste. Anexos enviados somem quando o serviço reinicia; os dados do banco permanecem.
+- **Supabase:** projetos gratuitos ficam pausados depois de cerca de uma semana sem atividade; é preciso reativar no painel.
+- **IP do visitante:** `TRUST_PROXY=1` considera apenas o balanceador do Render como proxy confiável. Se o log de auditoria mostrar o mesmo IP para todos os visitantes, aumente o valor para 2 e confira de novo.
+
+## Segurança da demonstração
+
+- `DEMO_MODE=true` é a única forma de o seed de demonstração rodar com `NODE_ENV=production`; fora dessa instância, a API recusa `SEED_DEMO`.
+- A senha de `DEMO_PASSWORD` é pública por definição. Não reutilize uma senha real e não coloque dados reais no banco da demonstração.
+- Para restaurar o estado inicial, apague os dados no Supabase e reinicie a API (o seed recria tudo).

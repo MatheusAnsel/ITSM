@@ -1,0 +1,43 @@
+# Blueprint do Render: API do ITSM em modo demonstração (imagem Docker, plano gratuito).
+# O banco fica no Supabase; o frontend fica na Vercel. Passo a passo em docs/DEPLOY.md.
+services:
+  - type: web
+    name: itsm-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: SWAGGER_ENABLED
+        value: "false"
+      # O balanceador do Render fica na frente da API; sem isto todos os visitantes parecem ter o mesmo IP.
+      - key: TRUST_PROXY
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      # URL do site na Vercel, por exemplo https://itsm-demo.vercel.app
+      - key: CORS_ORIGINS
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      # Seed ao iniciar (idempotente): categorias, SLA, administrador e dados de demonstração.
+      - key: SEED_ON_START
+        value: "true"
+      - key: SEED_DEMO
+        value: "true"
+      - key: DEMO_MODE
+        value: "true"
+      # Senha do administrador: gerada pelo Render e mantida em segredo (veja no painel).
+      - key: SEED_ADMIN_PASSWORD
+        generateValue: true
+      # Senha pública dos usuários de demonstração (gestor, atendente, solicitante). Escolha uma.
+      - key: DEMO_PASSWORD
+        sync: false
+      - key: AUTO_CLOSE_INTERVAL_MINUTES
+        value: "15"
