@@ -784,7 +784,7 @@ O arquivo `.env.example` lista todas essas variáveis (sem valores reais), além
 | 5 | Dashboard e auditoria | Concluída |
 | 6 | Frontend com todas as telas da seção 12 | Concluída |
 | 7 | Endurecimento: e2e contra PostgreSQL, cabeçalhos de segurança, Swagger, Dockerfiles | Concluída |
-| 8 | Publicação e demonstração online | Preparada: blueprint do Render, repasse de `/api` na Vercel e `DEMO_MODE` implementados; falta criar as contas e publicar ([docs/DEPLOY.md](docs/DEPLOY.md)) |
+| 8 | Publicação e demonstração online | Concluída: API e PostgreSQL no Render, site na Vercel com repasse de `/api`, modo `DEMO_MODE` ([docs/DEPLOY.md](docs/DEPLOY.md)) |
 
 ## 18. Como rodar
 
