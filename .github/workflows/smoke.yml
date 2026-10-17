@@ -1,0 +1,38 @@
+name: Verificação pós-deploy
+
+# Depois de cada push na main, espera o Render publicar a versão nova e confirma que a demonstração
+# responde de ponta a ponta (site da Vercel, repasse de /api, API e banco). Também roda uma vez por dia:
+# se o banco gratuito do Render expirar ou a API cair, o aviso aparece aqui antes de um recrutador ver.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 11 * * *'
+
+# Um push novo substitui a espera do anterior: só importa a versão mais recente.
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Testes do próprio script
+        run: node --test scripts/*.test.mjs
+      - name: Demonstração no ar
+        env:
+          DEMO_URL: ${{ vars.DEMO_URL || 'https://itsm-demo-six.vercel.app' }}
+          # Em push, espera exatamente o commit que acabou de entrar; nos demais casos só confere que está no ar.
+          EXPECTED_COMMIT: ${{ github.event_name == 'push' && github.sha || '' }}
+          WAIT_MINUTES: ${{ github.event_name == 'push' && '12' || '4' }}
+        run: node scripts/smoke.mjs
