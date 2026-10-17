@@ -53,6 +53,7 @@ Avisos da hospedagem gratuita:
 - **Concorrência:** a edição de chamado usa trava otimista, e duas pessoas alterando o mesmo chamado recebem um 409 em vez de sobrescrever uma à outra.
 - **Fechamento automático:** uma rotina periódica fecha chamados resolvidos sem resposta do solicitante, registrando o histórico em nome de um usuário de sistema.
 - **Auditoria sem vazamento:** o interceptor grava autor, ação, entidade, IP e os nomes dos campos alterados, nunca os valores nem campos de senha ou token.
+- **Observabilidade:** em produção os logs saem em JSON, uma linha por evento, com `requestId` repetido na resposta de erro, e o log de acesso nunca grava corpo, cabeçalhos nem query string. O `/api/health` confirma o banco e informa o commit em execução, e um workflow confere depois de cada deploy que a demonstração está no ar com a versão certa.
 - **Configuração que falha cedo:** as variáveis de ambiente são validadas na inicialização, e em produção a API recusa subir sem HTTPS, cookie seguro e segredos adequados.
 
 ## Arquitetura

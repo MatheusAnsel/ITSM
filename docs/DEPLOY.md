@@ -53,6 +53,13 @@ Todos usam `DEMO_PASSWORD`.
 
 O cadastro aberto também fica ligado na demonstração.
 
+## Logs e verificação do deploy
+
+- **Logs estruturados:** em produção a API escreve uma linha de JSON por evento (`LOG_FORMAT=json`, o padrão quando `NODE_ENV=production`), o que permite filtrar por campo no painel de logs do Render. Cada requisição gera uma linha com `method`, `path` (sem query string), `status`, `durationMs`, `requestId` e `userId`; nunca são registrados corpo, cabeçalhos nem cookies. `LOG_REQUESTS=false` desliga o log de acesso. Em desenvolvimento o formato continua o legível do Nest.
+- **Rastreio de erro:** o `requestId` devolvido na resposta de erro é o mesmo gravado no log, então um erro visto pelo usuário leva direto à linha do servidor.
+- **`/api/health`:** confirma o banco (`SELECT 1`, 503 se falhar) e informa o `commit` em execução quando a plataforma o fornece (o Render define `RENDER_GIT_COMMIT`).
+- **Verificação pós-deploy:** o workflow `smoke.yml` roda a cada push na `main`, espera o Render publicar o commit novo e confirma API, banco e site no ar; também roda uma vez por dia. A URL pode ser trocada pela variável de repositório `DEMO_URL`. Se falhar, ou o deploy não terminou em 12 minutos, ou a demonstração está fora (por exemplo, banco gratuito expirado).
+
 ## Limitações do plano gratuito
 
 - **Hibernação:** a API do Render dorme após cerca de 15 minutos sem acesso e leva em torno de um minuto para acordar. Como a Vercel desiste de repassar a requisição em 30 segundos, a primeira chamada depois de um período parado pode falhar. Um monitor gratuito (por exemplo, UptimeRobot) chamando `/api/health` a cada 5 minutos evita isso.
