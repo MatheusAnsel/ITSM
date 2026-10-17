@@ -58,8 +58,10 @@ async function send(path: string, init: RequestInit, token: string | null): Prom
 let refreshing: Promise<SessionUser | null> | null = null;
 
 export function refreshSession(): Promise<SessionUser | null> {
+  // Sem dica de login não há o que renovar. Esse atalho fica fora da promessa compartilhada: se ficasse
+  // dentro, o `null` ficaria guardado e uma renovação depois de um login novo devolveria sempre `null`.
+  if (!hasSessionHint()) return Promise.resolve(null);
   refreshing ??= (async () => {
-    if (!hasSessionHint()) return null;
     try {
       const res = await send('/auth/refresh', { method: 'POST' }, null);
       if (!res.ok) {
