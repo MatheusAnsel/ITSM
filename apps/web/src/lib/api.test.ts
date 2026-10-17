@@ -44,6 +44,37 @@ describe('login', () => {
   });
 });
 
+describe('mensagens de erro compreensíveis', () => {
+  const text = (status: number, body = '') => new Response(body, { status });
+
+  it('troca "Erro 504" sem corpo por um aviso de servidor acordando', async () => {
+    fetchMock.mockResolvedValueOnce(text(504, '<html>Gateway Timeout</html>'));
+    await expect(login('a@b.co', 'senha-123456')).rejects.toMatchObject({
+      status: 504,
+      message: expect.stringContaining('acordando'),
+    });
+  });
+
+  it('traduz o limite de tentativas (429), mesmo quando a API manda texto em inglês', async () => {
+    fetchMock.mockResolvedValueOnce(json(429, { message: 'ThrottlerException: Too Many Requests' }));
+    await expect(login('a@b.co', 'senha-123456')).rejects.toMatchObject({
+      status: 429,
+      message: expect.stringContaining('Muitas tentativas'),
+    });
+  });
+
+  it('mantém a mensagem da API quando ela existe, e expõe os campos recusados', async () => {
+    fetchMock.mockResolvedValueOnce(json(400, { message: 'Dados inválidos', errors: { email: ['email must be an email'] }, requestId: 'req-7' }));
+    const err = await login('x', 'y').catch((e: unknown) => e);
+    expect(err).toMatchObject({ status: 400, message: 'Dados inválidos', requestId: 'req-7', fields: { email: ['email must be an email'] } });
+  });
+
+  it('usa "Erro N" só quando não há nada melhor a dizer', async () => {
+    fetchMock.mockResolvedValueOnce(text(418));
+    await expect(login('a@b.co', 'senha-123456')).rejects.toMatchObject({ message: 'Erro 418' });
+  });
+});
+
 describe('refreshSession', () => {
   it('não chama a API quando nunca houve login neste navegador', async () => {
     await expect(refreshSession()).resolves.toBeNull();
