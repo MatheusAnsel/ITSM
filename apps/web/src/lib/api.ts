@@ -31,12 +31,15 @@ export class ApiError extends Error {
     message: string,
     readonly status: number,
     readonly requestId?: string,
+    // Erros de validação por campo (400), como { email: ['...'] }; as mensagens vêm em inglês do validador.
+    readonly fields?: Record<string, string[]>,
   ) {
     super(message);
   }
 }
 
 interface ErrorBody {
+  errors?: Record<string, string[]>;
   message?: string | string[];
   requestId?: string;
 }
@@ -93,9 +96,20 @@ async function raw(path: string, init: RequestInit = {}): Promise<Response> {
   return res;
 }
 
+// Mensagens para quem não deve ler "Erro 504" ou "ThrottlerException": limite de tentativas e servidor
+// gratuito acordando (o proxy da Vercel devolve 502/503/504 sem corpo JSON enquanto a API sobe).
+const RATE_LIMITED = 'Muitas tentativas em pouco tempo. Aguarde um minuto e tente de novo.';
+const WAKING_UP = 'O servidor está acordando ou indisponível. Aguarde cerca de um minuto e tente de novo.';
+
+function failureMessage(status: number, body: ErrorBody): string {
+  if (status === 429) return RATE_LIMITED;
+  if (!body.message && (status === 502 || status === 503 || status === 504)) return WAKING_UP;
+  return messageOf(body, `Erro ${status}`);
+}
+
 async function fail(res: Response): Promise<never> {
   const body = (await res.json().catch(() => ({}))) as ErrorBody;
-  throw new ApiError(messageOf(body, `Erro ${res.status}`), res.status, body.requestId);
+  throw new ApiError(failureMessage(res.status, body), res.status, body.requestId, body.errors);
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
