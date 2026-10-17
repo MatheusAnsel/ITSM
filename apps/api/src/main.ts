@@ -3,13 +3,17 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { configureApp } from './app.setup';
-import { validateEnv } from './config/env';
+import { JsonLogger } from './common/json-logger';
+import { resolveLogFormat, validateEnv } from './config/env';
 
 async function bootstrap(): Promise<void> {
   // Falha cedo: a API não sobe com configuração incompleta.
   const env = validateEnv();
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(
+    AppModule,
+    resolveLogFormat(env) === 'json' ? { logger: new JsonLogger() } : {},
+  );
   configureApp(app, env);
   // Encerra com limpeza (conexões do banco, jobs) ao receber SIGTERM do Docker/orquestrador.
   app.enableShutdownHooks();

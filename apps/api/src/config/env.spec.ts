@@ -1,4 +1,4 @@
-import { validateEnv } from './env';
+import { resolveLogFormat, validateEnv } from './env';
 
 const base = {
   DATABASE_URL: 'postgresql://u:p@localhost:5432/itsm',
@@ -25,6 +25,17 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...base, TRUST_PROXY: '-1' })).toThrow(/TRUST_PROXY/);
   });
 
+  it('LOG_REQUESTS vem ligado e o formato do log depende do ambiente', () => {
+    const dev = validateEnv(base);
+    expect(dev.LOG_REQUESTS).toBe(true);
+    expect(resolveLogFormat(dev)).toBe('pretty');
+    const prod = validateEnv({ ...base, NODE_ENV: 'production', COOKIE_SECURE: 'true' });
+    expect(resolveLogFormat(prod)).toBe('json');
+    expect(resolveLogFormat(validateEnv({ ...base, LOG_FORMAT: 'json' }))).toBe('json');
+    expect(validateEnv({ ...base, LOG_REQUESTS: 'false' }).LOG_REQUESTS).toBe(false);
+    expect(() => validateEnv({ ...base, LOG_FORMAT: 'xml' })).toThrow(/LOG_FORMAT/);
+  });
+
   it('rejeita segredo JWT curto', () => {
     expect(() => validateEnv({ ...base, JWT_ACCESS_SECRET: 'curto' })).toThrow(/JWT_ACCESS_SECRET/);
   });
@@ -34,9 +45,9 @@ describe('validateEnv', () => {
   });
 
   it('exige cookie seguro em produção', () => {
-    expect(() =>
-      validateEnv({ ...base, NODE_ENV: 'production', COOKIE_SECURE: 'false' }),
-    ).toThrow(/COOKIE_SECURE/);
+    expect(() => validateEnv({ ...base, NODE_ENV: 'production', COOKIE_SECURE: 'false' })).toThrow(
+      /COOKIE_SECURE/,
+    );
     expect(
       validateEnv({ ...base, NODE_ENV: 'production', COOKIE_SECURE: 'true' }).COOKIE_SECURE,
     ).toBe(true);

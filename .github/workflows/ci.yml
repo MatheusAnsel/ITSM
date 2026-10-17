@@ -30,6 +30,8 @@ jobs:
       CORS_ORIGINS: http://localhost:3000
       JWT_ACCESS_SECRET: ci-only-secret-with-at-least-32-characters-long
       NODE_ENV: test
+      # O e2e faz centenas de requisições; o log de acesso só atrapalharia a leitura da saída.
+      LOG_REQUESTS: "false"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,6 +42,7 @@ jobs:
       - run: npm run db:generate
       - run: npm run typecheck
       - run: npm run lint
+      - run: node --test scripts/*.test.mjs
       - run: npm run test:cov
       - name: Resumo de cobertura
         if: always()

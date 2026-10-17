@@ -35,9 +35,17 @@ export const envSchema = z.object({
   TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(0),
   // Instância pública de demonstração: permite o seed de demonstração mesmo com NODE_ENV=production.
   DEMO_MODE: booleanFromString('false'),
+  // "json" escreve uma linha de JSON por evento (padrão em produção); "pretty" é o formato legível do Nest.
+  LOG_FORMAT: z.enum(['json', 'pretty']).optional(),
+  // Uma linha de log por requisição (método, caminho, status, duração e requestId). Nunca registra corpo nem cabeçalhos.
+  LOG_REQUESTS: booleanFromString('true'),
 });
 
 export type Env = z.infer<typeof envSchema>;
+
+export function resolveLogFormat(env: Pick<Env, 'LOG_FORMAT' | 'NODE_ENV'>): 'json' | 'pretty' {
+  return env.LOG_FORMAT ?? (env.NODE_ENV === 'production' ? 'json' : 'pretty');
+}
 
 export function validateEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const result = envSchema.safeParse(source);

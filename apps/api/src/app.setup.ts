@@ -1,8 +1,9 @@
 import type { INestApplication } from '@nestjs/common';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { accessLogMiddleware } from './common/access-log.middleware';
 import { AllExceptionsFilter } from './common/http-exception.filter';
 import { requestIdMiddleware } from './common/request-id.middleware';
 import type { Env } from './config/env';
@@ -18,6 +19,7 @@ export function configureApp(app: INestApplication, env: Env): void {
   }
   app.setGlobalPrefix('api');
   app.use(requestIdMiddleware);
+  if (env.LOG_REQUESTS) app.use(accessLogMiddleware(new Logger('HTTP')));
   app.use(helmet());
   app.use(cookieParser());
   app.enableCors({ origin: env.CORS_ORIGINS, credentials: true });
