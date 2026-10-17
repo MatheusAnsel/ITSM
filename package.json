@@ -24,6 +24,8 @@
     "build:web": "npm run build -w apps/web",
     "lint:web": "npm run lint -w apps/web",
     "typecheck:web": "npm run typecheck -w apps/web",
+    "test:web": "npm run test -w apps/web",
+    "test:web:cov": "npm run test:cov -w apps/web",
     "test:e2e": "npm run test:e2e -w apps/api"
   },
   "overrides": {
