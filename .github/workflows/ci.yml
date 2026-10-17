@@ -56,7 +56,7 @@ jobs:
           const out = ['## Cobertura da API (testes unitários e de serviço)', '', '| Métrica | Cobertura | Linhas cobertas |', '|---|---|---|', row('statements', 'Instruções'), row('branches', 'Ramos'), row('functions', 'Funções'), row('lines', 'Linhas')].join('\n');
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, out + '\n');
           "
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: cobertura-api
@@ -96,7 +96,7 @@ jobs:
           const out = ['## Cobertura do frontend (lib, hooks e componentes)', '', '| Métrica | Cobertura | Linhas cobertas |', '|---|---|---|', row('statements', 'Instruções'), row('branches', 'Ramos'), row('functions', 'Funções'), row('lines', 'Linhas')].join('\n');
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, out + '\n');
           "
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: cobertura-web
@@ -155,7 +155,7 @@ jobs:
         working-directory: apps/web
       - run: npm run typecheck:e2e -w apps/web
       - run: npm run test:browser -w apps/web
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: relatorio-playwright
