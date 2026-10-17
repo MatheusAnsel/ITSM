@@ -10,3 +10,7 @@ uploads/
 .DS_Store
 next-env.d.ts
 *.tsbuildinfo
+
+# Playwright
+playwright-report/
+test-results/
