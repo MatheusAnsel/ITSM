@@ -55,6 +55,19 @@ Avisos da hospedagem gratuita:
 - **Auditoria sem vazamento:** o interceptor grava autor, ação, entidade, IP e os nomes dos campos alterados, nunca os valores nem campos de senha ou token.
 - **Configuração que falha cedo:** as variáveis de ambiente são validadas na inicialização, e em produção a API recusa subir sem HTTPS, cookie seguro e segredos adequados.
 
+## Arquitetura
+
+```mermaid
+flowchart LR
+    B[Navegador] -->|HTTPS| W["Web: Next.js (Vercel)"]
+    W -->|"REST JSON + cookie httpOnly"| A["API: NestJS (Render)"]
+    A --> D[("PostgreSQL via Prisma")]
+    A --> F[("Anexos em disco")]
+    A -. "rotina periódica" .-> C["Fechamento automático de chamados resolvidos"]
+```
+
+Cada módulo da API tem controller, service, DTOs e um repositório (Prisma em produção, em memória nos testes). As regras de negócio ficam em funções puras. As decisões principais estão registradas em [docs/adr](docs/adr/README.md).
+
 ## Stack
 
 | Camada | Tecnologias |
@@ -69,6 +82,7 @@ Avisos da hospedagem gratuita:
 ## Qualidade e verificação
 
 - Mais de 190 testes unitários e de serviço, e 27 testes de ponta a ponta contra um PostgreSQL 16 real, cobrindo autenticação e rotação de refresh, perfis, ciclo completo do chamado, pausa de SLA, comentários internos, anexos, ativos, painel e auditoria.
+- A cobertura dos testes unitários e de serviço da API é medida a cada execução do CI e aparece no resumo do job; o relatório completo fica como artefato da execução.
 - O pipeline do GitHub Actions roda tipos, lint, testes, migrations, e2e, build e `npm audit` na API e no web, e constrói as duas imagens Docker a cada push.
 - O fluxo da interface também foi percorrido em um navegador real, sem erros de console nem de rede.
 
@@ -101,7 +115,7 @@ npm run dev:api                 # http://localhost:3001
 npm run dev:web                 # http://localhost:3000
 ```
 
-Testes: `npm test` (unitários), `npm run test:e2e` (exige um banco com as migrations aplicadas), `npm run typecheck` e `npm run lint`.
+Testes: `npm test` (unitários), `npm run test:cov` (unitários com cobertura), `npm run test:e2e` (exige um banco com as migrations aplicadas), `npm run typecheck` e `npm run lint`.
 
 ## Estrutura
 
@@ -119,6 +133,7 @@ ITSM/
 
 ## Documentação
 
+- [Decisões de arquitetura (ADRs)](docs/adr/README.md): as cinco decisões que mais moldam o código, com contexto e consequências.
 - [Especificação técnica](docs/ESPECIFICACAO.md): escopo, perfis, requisitos, regras de negócio, fluxos, modelo de dados, API, segurança, testes e decisões em aberto.
 - [Publicação em modo demonstração](docs/DEPLOY.md): como a demo foi colocada no ar e as limitações do plano gratuito.
 - Swagger da API em `/api/docs` quando `SWAGGER_ENABLED=true`.
