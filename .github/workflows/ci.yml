@@ -102,6 +102,65 @@ jobs:
       - run: npm run build:web
       - run: npm audit --omit=dev --audit-level=high -w apps/web
 
+  # Navegador real (Chromium) percorrendo os fluxos da demo contra a API, o site e um PostgreSQL de verdade.
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: itsm
+          POSTGRES_PASSWORD: itsm_ci
+          POSTGRES_DB: itsm
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U itsm -d itsm"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://itsm:itsm_ci@localhost:5432/itsm
+      CORS_ORIGINS: http://localhost:3000
+      JWT_ACCESS_SECRET: ci-only-secret-with-at-least-32-characters-long
+      NODE_ENV: test
+      PORT: 3001
+      # Só em teste automatizado: várias entradas seguidas dos mesmos perfis, todas do mesmo IP.
+      RATE_LIMIT_ENABLED: "false"
+      AUTO_CLOSE_INTERVAL_MINUTES: "0"
+      UPLOAD_DIR: /tmp/itsm-uploads
+      SEED_ADMIN_PASSWORD: ci-only-seed-password-2026
+      DEMO_PASSWORD: Demo-Itsm-2026
+      SEED_DEMO: "true"
+      # Valores gravados no build do site: a tela de login em modo demonstração e a URL da API.
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+      NEXT_PUBLIC_DEMO_MODE: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run db:deploy
+      - run: npm run db:seed
+      - run: npm run build
+      - run: npm run build:web
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npm run typecheck:e2e -w apps/web
+      - run: npm run test:browser -w apps/web
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: relatorio-playwright
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          if-no-files-found: ignore
+
   # Garante que as imagens continuam construindo (sem publicar nada).
   docker:
     runs-on: ubuntu-latest

@@ -81,7 +81,7 @@ Cada módulo da API tem controller, service, DTOs e um repositório (Prisma em p
 
 ## Qualidade e verificação
 
-- Mais de 190 testes unitários e de serviço na API, cerca de 60 testes do frontend (Vitest e Testing Library: cliente da API e renovação de sessão, hook de carregamento e componentes de interface), e 27 testes de ponta a ponta contra um PostgreSQL 16 real, cobrindo autenticação e rotação de refresh, perfis, ciclo completo do chamado, pausa de SLA, comentários internos, anexos, ativos, painel e auditoria.
+- Mais de 190 testes unitários e de serviço na API, cerca de 60 testes do frontend (Vitest e Testing Library: cliente da API e renovação de sessão, hook de carregamento e componentes de interface), 27 testes de integração da API contra um PostgreSQL 16 real e 7 testes em navegador (Playwright) que percorrem os fluxos da demonstração: abertura, atendimento e resolução de um chamado por perfis diferentes, nota interna invisível ao solicitante, barreiras por perfil e retorno ao destino após o login. Cobrem autenticação e rotação de refresh, perfis, ciclo completo do chamado, pausa de SLA, comentários internos, anexos, ativos, painel e auditoria.
 - A cobertura dos testes unitários da API e do frontend é medida a cada execução do CI e aparece no resumo do job; o relatório completo fica como artefato da execução.
 - O pipeline do GitHub Actions roda tipos, lint, testes, migrations, e2e, build e `npm audit` na API e no web, e constrói as duas imagens Docker a cada push.
 - O fluxo da interface também foi percorrido em um navegador real, sem erros de console nem de rede.
@@ -115,7 +115,7 @@ npm run dev:api                 # http://localhost:3001
 npm run dev:web                 # http://localhost:3000
 ```
 
-Testes: `npm test` (unitários), `npm run test:cov` (unitários com cobertura), `npm run test:web` (frontend), `npm run test:e2e` (exige um banco com as migrations aplicadas), `npm run typecheck` e `npm run lint`.
+Testes: `npm test` (unitários), `npm run test:cov` (unitários com cobertura), `npm run test:web` (frontend), `npm run test:browser -w apps/web` (Playwright, exige API e site compilados e o banco com o seed de demonstração), `npm run test:e2e` (exige um banco com as migrations aplicadas), `npm run typecheck` e `npm run lint`.
 
 ## Estrutura
 
