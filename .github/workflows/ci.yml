@@ -80,6 +80,25 @@ jobs:
       - run: npm ci
       - run: npm run typecheck:web
       - run: npm run lint:web
+      - run: npm run test:web:cov
+      - name: Resumo de cobertura
+        if: always()
+        run: |
+          node -e "
+          const fs = require('fs');
+          const f = 'apps/web/coverage/coverage-summary.json';
+          if (!fs.existsSync(f)) process.exit(0);
+          const t = JSON.parse(fs.readFileSync(f, 'utf8')).total;
+          const row = (k, n) => '| ' + n + ' | ' + t[k].pct + '% | ' + t[k].covered + '/' + t[k].total + ' |';
+          const out = ['## Cobertura do frontend (lib, hooks e componentes)', '', '| Métrica | Cobertura | Linhas cobertas |', '|---|---|---|', row('statements', 'Instruções'), row('branches', 'Ramos'), row('functions', 'Funções'), row('lines', 'Linhas')].join('\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, out + '\n');
+          "
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-web
+          path: apps/web/coverage
+          if-no-files-found: ignore
       - run: npm run build:web
       - run: npm audit --omit=dev --audit-level=high -w apps/web
 
