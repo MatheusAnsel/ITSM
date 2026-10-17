@@ -49,7 +49,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else {
       // Detalhes só no log do servidor; nunca na resposta.
       const detail = exception instanceof Error ? exception.stack : String(exception);
-      this.logger.error(`[${requestId}] ${detail}`);
+      this.logger.error({
+        message: 'Erro não tratado',
+        requestId,
+        method: req.method,
+        path: req.originalUrl?.split('?')[0],
+        stack: detail,
+      });
     }
 
     res.status(body.statusCode).json(body);

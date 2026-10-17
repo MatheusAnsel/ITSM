@@ -331,6 +331,8 @@ describe('Fluxo completo da API contra PostgreSQL real', () => {
     it('health informa o banco', async () => {
       const res = await http().get('/api/health').expect(200);
       expect(res.body).toMatchObject({ status: 'ok', database: 'up' });
+      // O commit em execução (quando a plataforma informa) permite conferir o deploy; a chave sempre existe.
+      expect(res.body).toHaveProperty('commit');
     });
   });
 });
