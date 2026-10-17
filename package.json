@@ -15,6 +15,7 @@
     "lint": "npm run lint -w apps/api",
     "typecheck": "npm run typecheck -w apps/api",
     "test": "npm run test -w apps/api",
+    "test:cov": "npm run test:cov -w apps/api",
     "db:generate": "npm run prisma:generate -w apps/api",
     "db:migrate": "npm run prisma:migrate -w apps/api",
     "db:deploy": "npm run prisma:deploy -w apps/api",

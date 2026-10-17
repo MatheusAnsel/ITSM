@@ -40,7 +40,25 @@ jobs:
       - run: npm run db:generate
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm run test
+      - run: npm run test:cov
+      - name: Resumo de cobertura
+        if: always()
+        run: |
+          node -e "
+          const fs = require('fs');
+          const f = 'apps/api/coverage/coverage-summary.json';
+          if (!fs.existsSync(f)) process.exit(0);
+          const t = JSON.parse(fs.readFileSync(f, 'utf8')).total;
+          const row = (k, n) => '| ' + n + ' | ' + t[k].pct + '% | ' + t[k].covered + '/' + t[k].total + ' |';
+          const out = ['## Cobertura da API (testes unitários e de serviço)', '', '| Métrica | Cobertura | Linhas cobertas |', '|---|---|---|', row('statements', 'Instruções'), row('branches', 'Ramos'), row('functions', 'Funções'), row('lines', 'Linhas')].join('\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, out + '\n');
+          "
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-api
+          path: apps/api/coverage
+          if-no-files-found: ignore
       # Testes de integração: AppModule inteiro contra o PostgreSQL real do serviço acima.
       - run: npm run db:deploy
       # As políticas de SLA e as categorias vêm do seed, não das migrations; o e2e depende delas.
