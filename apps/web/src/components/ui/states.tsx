@@ -1,11 +1,18 @@
+'use client';
+
 import { AlertTriangle, Inbox, Loader2 } from 'lucide-react';
 import { Button } from './form';
+import { useServidorIniciando, MENSAGEM_SERVIDOR, DETALHE_SERVIDOR } from '@/lib/servidor';
 
 export function Loading({ label = 'Carregando...' }: { label?: string }) {
+  const iniciando = useServidorIniciando();
   return (
-    <div role="status" className="flex items-center justify-center gap-2 py-16 text-[13px] text-ink-3">
-      <Loader2 size={16} className="animate-spin" aria-hidden />
-      {label}
+    <div role="status" aria-live="polite" className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center text-[13px] text-ink-3">
+      <span className="flex items-center gap-2">
+        <Loader2 size={16} className="animate-spin" aria-hidden />
+        {iniciando ? <strong className="font-semibold text-ink">{MENSAGEM_SERVIDOR}</strong> : label}
+      </span>
+      {iniciando && <p className="max-w-sm">{DETALHE_SERVIDOR}</p>}
     </div>
   );
 }

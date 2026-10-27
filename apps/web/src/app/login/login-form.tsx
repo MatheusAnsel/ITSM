@@ -7,6 +7,7 @@ import { useAuth } from '@/components/auth/auth-provider';
 import { Button, Field, FormError, Input } from '@/components/ui/form';
 import { ApiError } from '@/lib/api';
 import { safeNext } from '@/lib/navigation';
+import { useServidorIniciando, MENSAGEM_SERVIDOR } from '@/lib/servidor';
 
 // Modo demonstração: só aparece quando o build define NEXT_PUBLIC_DEMO_MODE=true. A senha é pública de propósito.
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
@@ -26,6 +27,7 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const iniciando = useServidorIniciando();
   const next = safeNext(params.get('next'));
 
   // Quem já tem sessão válida (cookie de refresh) não precisa ver o formulário.
@@ -52,6 +54,12 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-3.5" noValidate>
+      {iniciando && (
+        <p role="status" aria-live="polite" className="rounded-md border border-line px-3 py-2 text-xs leading-relaxed text-ink-3">
+          <strong className="font-semibold text-ink">{MENSAGEM_SERVIDOR}</strong> Pode entrar normalmente: o acesso
+          continua assim que a API responder.
+        </p>
+      )}
       <Field label="E-mail">
         <Input type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@empresa.com" className="h-10" />
       </Field>
@@ -60,7 +68,7 @@ export function LoginForm() {
       </Field>
       <FormError message={error} />
       <Button type="submit" variant="primary" disabled={loading || !email || !password} className="h-10 w-full text-[14px]">
-        {loading ? 'Entrando...' : 'Entrar'}
+        {loading ? (iniciando ? 'Aguardando o servidor...' : 'Entrando...') : 'Entrar'}
       </Button>
       <p className="pt-1 text-center text-xs text-ink-3">
         Não tem conta?{' '}
