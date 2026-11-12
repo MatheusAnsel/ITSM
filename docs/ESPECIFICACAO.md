@@ -790,4 +790,4 @@ npm run dev:web               # http://localhost:3000
 
 Licença MIT (arquivo `LICENSE`).
 
-Matheus Ansel, desenvolvedor full stack. [LinkedIn](https://linkedin.com/in/matheusansel) · [GitHub](https://github.com/MatheusAnsel) · [Portfólio](https://matheusansel-dev.vercel.app)
+Matheus Ansel, desenvolvedor full stack. [LinkedIn](https://linkedin.com/in/matheusansel) · [GitHub](https://github.com/MatheusAnsel) · [Portfólio](https://matheusansel.pages.dev)
