@@ -4,7 +4,7 @@ Arquitetura escolhida, toda em planos gratuitos:
 
 | Peça | Serviço | Por quê |
 |---|---|---|
-| Banco PostgreSQL | Render (plano gratuito) | Fica na mesma rede da API. Atenção: o banco gratuito do Render é apagado 30 dias após a criação (a demonstração atual expira em 14/11/2026) |
+| Banco PostgreSQL | Render (plano gratuito) | Fica na mesma rede da API. Atenção: o banco gratuito do Render é apagado 30 dias após a criação (o banco atual da demonstração expira em 13/12/2026) |
 | API (NestJS) | Render, imagem Docker | Roda o `apps/api/Dockerfile`, aplica as migrations e o seed ao iniciar |
 | Frontend (Next.js) | Vercel | Hospedagem nativa do Next; repassa `/api` para a API |
 
