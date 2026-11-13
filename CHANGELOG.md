@@ -4,6 +4,17 @@ Todas as mudanças relevantes deste projeto são registradas aqui.
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o projeto usa [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.3.0] - 2026-11-13
+
+### Adicionado
+
+- Recriação automática da demonstração: o seed gera de novo os chamados com datas atuais quando a última recriação passou de `DEMO_REFRESH_HOURS` (padrão 24 h), e restaura usuários e ativos de demonstração; cada recriação fica na auditoria como `DEMO_RESET`
+
+### Corrigido
+
+- A demonstração publicada mostrava os chamados de quando o banco foi criado (meados de outubro), com o painel dos últimos 30 dias esvaziando com o tempo
+- Chamado de exemplo com título e descrição desencontrados ("Cadeira de TI para sala de suporte")
+
 ## [1.2.1] - 2026-10-21
 
 ### Alterado

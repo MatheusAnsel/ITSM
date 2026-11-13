@@ -4,7 +4,8 @@ import * as bcrypt from 'bcryptjs';
 import { SYSTEM_USER_EMAIL, SYSTEM_USER_NAME } from '../common/system-user';
 import { BCRYPT_COST, normalizeEmail, validatePassword } from '../modules/auth/auth.rules';
 import { DEFAULT_SLA, PRIORITIES } from '../modules/tickets/ticket.rules';
-import { buildDemoTickets } from './seed-demo';
+import { LocalFileStorage } from '../modules/attachments/attachments.storage';
+import { buildDemoTickets, DEFAULT_DEMO_REFRESH_HOURS, DEMO_RESET_ACTION, isDemoStale } from './seed-demo';
 
 const prisma = new PrismaClient();
 
@@ -81,16 +82,36 @@ async function seedDemo(): Promise<void> {
     ['carla', 'Carla Nunes', 'carla.nunes@itsm.local', 'REQUESTER'],
   ] as const;
   const idOf = new Map<string, string>();
+  const system = await prisma.user.findUniqueOrThrow({ where: { email: SYSTEM_USER_EMAIL } });
+  const now = new Date();
+  const lastReset = await prisma.auditLog.findFirst({
+    where: { action: DEMO_RESET_ACTION },
+    orderBy: { createdAt: 'desc' },
+  });
+  const refreshHours = Number(process.env.DEMO_REFRESH_HOURS ?? DEFAULT_DEMO_REFRESH_HOURS);
+  const stale = isDemoStale(lastReset?.createdAt ?? null, await prisma.ticket.count(), now, refreshHours);
+
+  // Na recriação, os usuários de demonstração voltam ao estado original (perfil, ativo e senha
+  // pública), para um visitante não deixar a demonstração quebrada para o próximo.
   for (const [key, name, email, role] of people) {
     const user = await prisma.user.upsert({
       where: { email },
       create: { name, email, passwordHash, role },
-      update: {},
+      update: stale ? { name, role, active: true, passwordHash } : {},
     });
     idOf.set(key, user.id);
   }
-  const system = await prisma.user.findUniqueOrThrow({ where: { email: SYSTEM_USER_EMAIL } });
   idOf.set('sistema', system.id);
+
+  if (stale) {
+    // Chamados levam junto comentários, histórico e anexos (cascade); os arquivos dos anexos saem do disco.
+    const storage = new LocalFileStorage(process.env.UPLOAD_DIR ?? './uploads');
+    const files = await prisma.attachment.findMany({ select: { storageKey: true } });
+    await prisma.ticket.deleteMany();
+    await Promise.all(files.map((f) => storage.remove(f.storageKey)));
+    // A trilha de auditoria da demonstração é das ações de visitantes sobre os dados apagados.
+    await prisma.auditLog.deleteMany();
+  }
 
   const assets = [
     ['NB-0001', 'Notebook Dell Latitude 5440', 'NOTEBOOK', 'IN_USE', 'solicitante'],
@@ -109,20 +130,20 @@ async function seedDemo(): Promise<void> {
     const asset = await prisma.asset.upsert({
       where: { tag },
       create: { tag, name, type, status, assignedToId: owner ? idOf.get(owner) : null },
-      update: {},
+      update: stale ? { name, type, status, assignedToId: owner ? idOf.get(owner) : null } : {},
     });
     assetId.set(tag, asset.id);
   }
 
-  // Chamados só entram em banco vazio: rodar o seed de novo não duplica nada.
-  if ((await prisma.ticket.count()) === 0) {
+  // Chamados só entram quando a base está vazia ou foi limpa acima: rodar o seed de novo não duplica nada.
+  if (stale) {
     const categories = new Map((await prisma.category.findMany()).map((c) => [c.name, c.id]));
     const person = (key: string): string => {
       const id = idOf.get(key);
       if (!id) throw new Error(`Pessoa de demonstração desconhecida: ${key}`);
       return id;
     };
-    for (const t of buildDemoTickets(new Date())) {
+    for (const t of buildDemoTickets(now)) {
       await prisma.ticket.create({
         data: {
           title: t.title,
@@ -160,8 +181,19 @@ async function seedDemo(): Promise<void> {
         },
       });
     }
+    await prisma.auditLog.create({
+      data: {
+        actorId: system.id,
+        action: DEMO_RESET_ACTION,
+        entity: 'System',
+        metadata: { tickets: await prisma.ticket.count(), refreshHours },
+        createdAt: now,
+      },
+    });
+    console.log('Chamados de demonstração recriados com datas atuais.');
+  } else {
+    console.log(`Dados de demonstração recentes (recriados em ${lastReset?.createdAt.toISOString()}); mantidos.`);
   }
-  console.log('Dados de demonstração criados (usuários com a mesma senha do administrador).');
 }
 
 async function main(): Promise<void> {

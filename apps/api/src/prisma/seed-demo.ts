@@ -71,7 +71,7 @@ const TEMPLATES: Template[] = [
   { title: 'E-mails indo para spam', description: 'Mensagens de um cliente importante estão caindo na pasta de spam desde ontem.', category: 'E-mail', priority: 'MEDIUM' },
   { title: 'Criar lista de distribuição do time comercial', description: 'Precisamos de uma lista única para falar com todo o time comercial.', category: 'E-mail', priority: 'LOW' },
   { title: 'Solicitação de segundo monitor', description: 'Pelo volume de planilhas e sistemas abertos, solicito um segundo monitor para a minha estação.', category: 'Outros', priority: 'LOW' },
-  { title: 'Cadeira de TI para sala de suporte', description: 'Preciso de apoio para montar a estação de atendimento da sala de suporte.', category: 'Outros', priority: 'LOW' },
+  { title: 'Montar estação de trabalho para novo colaborador', description: 'Colaborador novo começa na segunda e precisa de computador, monitor, telefone IP e ponto de rede ativos na mesa 22.', category: 'Outros', priority: 'MEDIUM' },
 ];
 
 const STAFF_REPLIES = [
@@ -94,6 +94,25 @@ const SOLUTIONS = [
   'Substituição realizada e funcionamento normalizado.',
   'Configuração ajustada; acompanhamos por algumas horas e não houve reincidência.',
 ];
+
+export const DEMO_RESET_ACTION = 'DEMO_RESET';
+export const DEFAULT_DEMO_REFRESH_HOURS = 24;
+
+// Os chamados de demonstração são gerados em relação a "agora". Se a base ficar parada, as datas
+// envelhecem (painel dos últimos 30 dias vazio, tudo fechado). Por isso a instância de demonstração
+// recria os chamados quando a última recriação passou do intervalo configurado.
+export function isDemoStale(
+  lastResetAt: Date | null,
+  ticketCount: number,
+  now: Date,
+  refreshHours = DEFAULT_DEMO_REFRESH_HOURS,
+): boolean {
+  if (ticketCount === 0) return true;
+  // Base antiga, de antes do controle de recriação: não há como saber a idade, então recria.
+  if (!lastResetAt) return true;
+  if (!(refreshHours > 0)) return false; // 0 ou inválido desliga a recriação automática
+  return now.getTime() - lastResetAt.getTime() >= refreshHours * HOUR;
+}
 
 // PRNG determinístico (mulberry32): a mesma semente gera sempre os mesmos dados.
 export function rng(seed: number): () => number {

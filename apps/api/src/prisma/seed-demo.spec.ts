@@ -1,4 +1,4 @@
-import { buildDemoTickets, DEMO_AGENTS, DEMO_REQUESTERS } from './seed-demo';
+import { buildDemoTickets, DEMO_AGENTS, DEMO_REQUESTERS, isDemoStale } from './seed-demo';
 
 const NOW = new Date('2026-10-14T12:00:00Z');
 const tickets = buildDemoTickets(NOW);
@@ -73,5 +73,26 @@ describe('chamados de demonstração', () => {
     const open = tickets.filter((t) => t.status === 'OPEN' || t.status === 'IN_PROGRESS');
     expect(open.some((t) => t.resolutionDueAt < NOW)).toBe(true);
     expect(open.some((t) => t.resolutionDueAt > NOW)).toBe(true);
+  });
+});
+
+describe('recriação automática da demonstração', () => {
+  const HOUR = 3_600_000;
+
+  it('recria quando não há chamados ou quando a base é de antes do controle', () => {
+    expect(isDemoStale(new Date(NOW.getTime() - HOUR), 0, NOW)).toBe(true);
+    expect(isDemoStale(null, 48, NOW)).toBe(true);
+  });
+
+  it('mantém os dados dentro do intervalo e recria depois dele', () => {
+    expect(isDemoStale(new Date(NOW.getTime() - 23 * HOUR), 48, NOW)).toBe(false);
+    expect(isDemoStale(new Date(NOW.getTime() - 24 * HOUR), 48, NOW)).toBe(true);
+    expect(isDemoStale(new Date(NOW.getTime() - 5 * HOUR), 48, NOW, 4)).toBe(true);
+  });
+
+  it('intervalo 0 ou inválido desliga a recriação de uma base já marcada', () => {
+    const old = new Date(NOW.getTime() - 90 * 24 * HOUR);
+    expect(isDemoStale(old, 48, NOW, 0)).toBe(false);
+    expect(isDemoStale(old, 48, NOW, Number('abc'))).toBe(false);
   });
 });

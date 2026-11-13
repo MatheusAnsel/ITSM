@@ -53,6 +53,12 @@ Todos usam `DEMO_PASSWORD`.
 
 O cadastro aberto também fica ligado na demonstração.
 
+## Dados sempre atuais
+
+Os chamados de demonstração são gerados em relação à data em que o seed roda (últimos 30 dias, com todos os status e SLA dentro e fora do prazo). Para não envelhecerem, o seed recria a demonstração quando a última recriação tem mais de `DEMO_REFRESH_HOURS` horas (padrão 24; `0` desliga). Como o plano gratuito do Render adormece a API após alguns minutos sem acesso, o seed roda de novo a cada vez que ela acorda, e no máximo uma vez por dia os dados voltam ao estado inicial com datas de hoje.
+
+Na recriação: chamados (com comentários, histórico e anexos) e a trilha de auditoria são apagados e gerados de novo; usuários e ativos de demonstração voltam ao estado original (inclusive a senha pública); categorias, políticas de SLA, o administrador e contas criadas por visitantes são mantidos. Cada recriação fica registrada na auditoria como `DEMO_RESET`.
+
 ## Logs e verificação do deploy
 
 - **Logs estruturados:** em produção a API escreve uma linha de JSON por evento (`LOG_FORMAT=json`, o padrão quando `NODE_ENV=production`), o que permite filtrar por campo no painel de logs do Render. Cada requisição gera uma linha com `method`, `path` (sem query string), `status`, `durationMs`, `requestId` e `userId`; nunca são registrados corpo, cabeçalhos nem cookies. `LOG_REQUESTS=false` desliga o log de acesso. Em desenvolvimento o formato continua o legível do Nest.
