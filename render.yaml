@@ -39,5 +39,8 @@ services:
       # Senha pública dos usuários de demonstração (gestor, atendente, solicitante). Escolha uma.
       - key: DEMO_PASSWORD
         sync: false
+      # Recria os chamados de demonstração com datas atuais quando a última recriação passa deste intervalo.
+      - key: DEMO_REFRESH_HOURS
+        value: "24"
       - key: AUTO_CLOSE_INTERVAL_MINUTES
         value: "15"

@@ -4,7 +4,7 @@ Arquitetura escolhida, toda em planos gratuitos:
 
 | Peça | Serviço | Por quê |
 |---|---|---|
-| Banco PostgreSQL | Render (plano gratuito) | Fica na mesma rede da API. Atenção: o banco gratuito do Render é apagado 30 dias após a criação (a demonstração atual expira em 14/11/2026) |
+| Banco PostgreSQL | Render (plano gratuito) | Fica na mesma rede da API. Atenção: o banco gratuito do Render é apagado 30 dias após a criação (o banco atual da demonstração expira em 13/12/2026) |
 | API (NestJS) | Render, imagem Docker | Roda o `apps/api/Dockerfile`, aplica as migrations e o seed ao iniciar |
 | Frontend (Next.js) | Vercel | Hospedagem nativa do Next; repassa `/api` para a API |
 
@@ -52,6 +52,12 @@ Todos usam `DEMO_PASSWORD`.
 | Solicitante | `solicitante@itsm.local` |
 
 O cadastro aberto também fica ligado na demonstração.
+
+## Dados sempre atuais
+
+Os chamados de demonstração são gerados em relação à data em que o seed roda (últimos 30 dias, com todos os status e SLA dentro e fora do prazo). Para não envelhecerem, o seed recria a demonstração quando a última recriação tem mais de `DEMO_REFRESH_HOURS` horas (padrão 24; `0` desliga). Como o plano gratuito do Render adormece a API após alguns minutos sem acesso, o seed roda de novo a cada vez que ela acorda, e no máximo uma vez por dia os dados voltam ao estado inicial com datas de hoje.
+
+Na recriação: chamados (com comentários, histórico e anexos) e a trilha de auditoria são apagados e gerados de novo; usuários e ativos de demonstração voltam ao estado original (inclusive a senha pública); categorias, políticas de SLA, o administrador e contas criadas por visitantes são mantidos. Cada recriação fica registrada na auditoria como `DEMO_RESET`.
 
 ## Logs e verificação do deploy
 
