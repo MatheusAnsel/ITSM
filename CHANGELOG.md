@@ -4,6 +4,17 @@ Todas as mudanças relevantes deste projeto são registradas aqui.
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o projeto usa [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.3.1] - 2026-11-18
+
+### Corrigido
+
+- Verificação pós-deploy agendada ficava verde com uma versão antiga no ar; agora exige o último commit da `main` (o merge da 1.3.0 ficou dias sem deploy sem nenhum alerta)
+- Resumo da verificação mostrava o site como "falhou (status 0)" sem tê-lo verificado; o site agora é checado sempre
+
+### Adicionado
+
+- `smoke.yml` pede o deploy ao Render pelo Deploy Hook (secret `RENDER_DEPLOY_HOOK_URL`), sem depender só do webhook do GitHub
+
 ## [1.3.0] - 2026-11-13
 
 ### Adicionado

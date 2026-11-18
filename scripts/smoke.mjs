@@ -72,7 +72,8 @@ async function main() {
   const timeoutMs = Number(process.env.WAIT_MINUTES ?? 12) * 60_000;
 
   const api = await waitForHealthy({ baseUrl, expectedCommit, timeoutMs, log: (line) => console.log(line) });
-  const site = api.ok ? await checkSite({ baseUrl }).catch(() => ({ ok: false, status: 0 })) : { ok: false, status: 0 };
+  // O site (Vercel) é verificado mesmo se a API falhar, para o resumo apontar qual lado está fora.
+  const site = await checkSite({ baseUrl }).catch(() => ({ ok: false, status: 0 }));
 
   const lines = [
     '## Verificação pós-deploy da demonstração',
@@ -81,7 +82,7 @@ async function main() {
     `|---|---|`,
     `| API e banco (\`/api/health\`) | ${api.ok ? 'no ar' : `falhou: ${api.reason}`} |`,
     `| Commit no ar | ${api.last?.commit ? String(api.last.commit).slice(0, 7) : 'não informado'} |`,
-    `| Site (\`/login\`) | ${site.ok ? 'no ar' : `falhou (status ${site.status})`} |`,
+    `| Site (\`/login\`) | ${site.ok ? 'no ar' : site.status ? `falhou (status ${site.status})` : 'falhou (sem resposta)'} |`,
     `| Tentativas | ${api.attempts} |`,
   ];
   console.log(lines.join('\n'));

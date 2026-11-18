@@ -29,10 +29,25 @@ jobs:
           node-version: 24
       - name: Testes do próprio script
         run: node --test scripts/*.test.mjs
+      # O auto-deploy do Render depende do webhook do GitHub, que já deixou commits da main sem deploy.
+      # Com o Deploy Hook (Render > itsm-api > Settings > Deploy Hook) salvo no secret RENDER_DEPLOY_HOOK_URL,
+      # o próprio workflow pede o deploy. Sem o secret, só avisa e segue dependendo do auto-deploy.
+      - name: Pedir deploy ao Render
+        if: github.event_name == 'push'
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::warning::Secret RENDER_DEPLOY_HOOK_URL não configurado; dependendo do auto-deploy do Render."
+            exit 0
+          fi
+          curl -fsS -X POST --retry 3 --retry-all-errors "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+          echo "Deploy solicitado ao Render."
       - name: Demonstração no ar
         env:
           DEMO_URL: ${{ vars.DEMO_URL || 'https://itsm-demo-six.vercel.app' }}
-          # Em push, espera exatamente o commit que acabou de entrar; nos demais casos só confere que está no ar.
-          EXPECTED_COMMIT: ${{ github.event_name == 'push' && github.sha || '' }}
+          # Sempre que roda na main (push, agendado ou manual), exige que o commit no ar seja o da main.
+          # Antes o agendado só via se a API respondia e ficava verde com uma versão antiga no ar.
+          EXPECTED_COMMIT: ${{ github.ref == 'refs/heads/main' && github.sha || '' }}
           WAIT_MINUTES: ${{ github.event_name == 'push' && '12' || '4' }}
         run: node scripts/smoke.mjs
