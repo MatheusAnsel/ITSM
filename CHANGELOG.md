@@ -4,6 +4,16 @@ Todas as mudanças relevantes deste projeto são registradas aqui.
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o projeto usa [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.3.2] - 2026-11-22
+
+### Corrigido
+
+- Demonstração voltou a rodar o último commit da `main` (6a2cb46): o Render nunca recebeu os pushes deste repositório pelo webhook do GitHub (todos os deploys desde a criação do serviço foram manuais ou por API), então a 1.3.0 e a 1.3.1 nunca tinham sido publicadas. A verificação pós-deploy estava certa ao falhar.
+
+### Alterado
+
+- `actions/checkout` v4 → v7 e `docker/setup-buildx-action` v3 → v4 (runtime Node 24; o Node 20 das versões antigas está sendo descontinuado nos runners)
+
 ## [1.3.1] - 2026-11-18
 
 ### Corrigido
